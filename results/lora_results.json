@@ -1,0 +1,200 @@
+{
+  "protocol": {
+    "model_id": "prajjwal1/bert-tiny",
+    "model_commit": "6f75de8b60a9f8a2fdf7b69cbd86d9e64bcb3837",
+    "tokenizer_class": "BertTokenizerFast",
+    "max_length": 192,
+    "truncation_side": "left",
+    "pairs": 2000,
+    "train": 1400,
+    "validation": 300,
+    "test": 300,
+    "sample_seed": 20260918,
+    "training_seeds": [
+      11,
+      29,
+      47
+    ],
+    "beta": 0.3,
+    "epochs": 4,
+    "batch_size_pairs": 16,
+    "optimizer": "AdamW",
+    "encoder_learning_rate": 0.0005,
+    "head_learning_rate": 0.001,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "lora_rank": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "lora_targets": [
+      "query",
+      "value"
+    ],
+    "geometry_seed": 11
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.8.0+cpu"
+  },
+  "data_manifest": {
+    "dataset": "Anthropic/hh-rlhf",
+    "config": "default",
+    "split": "train",
+    "rows": 2000,
+    "sampling": "deterministic random non-overlapping API pages",
+    "sample_seed": 20260918,
+    "source_api": "https://datasets-server.huggingface.co/rows",
+    "sha256_canonical_jsonl": "e7a1ba050309838772fc8eca5506f601b91b556b7ab3fcddd3f77ee591e096bd",
+    "cache_file": "C:/Users/PETR/Documents/Codex/2026-08-01/new-chat-3/optimML/data/cache/hh_rlhf_2000_seed20260918.jsonl"
+  },
+  "runs": [
+    {
+      "method": "head_only",
+      "seed": 11,
+      "beta": 0.3,
+      "validation_accuracy": 0.4633333333333333,
+      "test_accuracy": 0.55,
+      "test_pair_loss": 0.6861074968128426,
+      "test_brier": 0.2465101783252402,
+      "test_margin": 0.05983555855850379,
+      "trainable_parameters": 129,
+      "total_parameters": 4386049,
+      "elapsed_seconds": 75.3149609999964,
+      "selected_epoch": 2
+    },
+    {
+      "method": "head_only",
+      "seed": 29,
+      "beta": 0.3,
+      "validation_accuracy": 0.55,
+      "test_accuracy": 0.55,
+      "test_pair_loss": 0.6853691098681753,
+      "test_brier": 0.24613387387303287,
+      "test_margin": 0.06245381633440653,
+      "trainable_parameters": 129,
+      "total_parameters": 4386049,
+      "elapsed_seconds": 76.6184149000037,
+      "selected_epoch": 1
+    },
+    {
+      "method": "head_only",
+      "seed": 47,
+      "beta": 0.3,
+      "validation_accuracy": 0.5133333333333333,
+      "test_accuracy": 0.54,
+      "test_pair_loss": 0.6879876060616885,
+      "test_brier": 0.2474519540730493,
+      "test_margin": 0.04797064396242301,
+      "trainable_parameters": 129,
+      "total_parameters": 4386049,
+      "elapsed_seconds": 74.9961534999893,
+      "selected_epoch": 2
+    },
+    {
+      "method": "lora",
+      "seed": 11,
+      "beta": 0.3,
+      "validation_accuracy": 0.5233333333333333,
+      "test_accuracy": 0.5333333333333333,
+      "test_pair_loss": 0.6906979788067832,
+      "test_brier": 0.24879721157749562,
+      "test_margin": 0.029117347734669844,
+      "trainable_parameters": 8321,
+      "total_parameters": 4394241,
+      "elapsed_seconds": 124.18839589999698,
+      "selected_epoch": 1
+    },
+    {
+      "method": "lora",
+      "seed": 29,
+      "beta": 0.3,
+      "validation_accuracy": 0.49333333333333335,
+      "test_accuracy": 0.5133333333333333,
+      "test_pair_loss": 0.6872862428701179,
+      "test_brier": 0.24712363359152587,
+      "test_margin": 0.05464042816311121,
+      "trainable_parameters": 8321,
+      "total_parameters": 4394241,
+      "elapsed_seconds": 124.82834239999647,
+      "selected_epoch": 1
+    },
+    {
+      "method": "lora",
+      "seed": 47,
+      "beta": 0.3,
+      "validation_accuracy": 0.5233333333333333,
+      "test_accuracy": 0.5533333333333333,
+      "test_pair_loss": 0.6837033388887276,
+      "test_brier": 0.24530702060963175,
+      "test_margin": 0.07290782429277896,
+      "trainable_parameters": 8321,
+      "total_parameters": 4394241,
+      "elapsed_seconds": 132.14933790000214,
+      "selected_epoch": 1
+    }
+  ],
+  "summary": [
+    {
+      "method": "head_only",
+      "runs": 3,
+      "accuracy_mean": 0.5466666666666667,
+      "accuracy_sd": 0.005773502691896262,
+      "pair_loss_mean": 0.6864880709142355,
+      "brier_mean": 0.24669866875710744,
+      "trainable_parameters": 129,
+      "trainable_share": 2.9411436123946632e-05,
+      "elapsed_seconds_mean": 75.64317646666314,
+      "selected_epoch_mean": 1.6666666666666667
+    },
+    {
+      "method": "lora",
+      "runs": 3,
+      "accuracy_mean": 0.5333333333333333,
+      "accuracy_sd": 0.020000000000000018,
+      "pair_loss_mean": 0.6872291868552095,
+      "brier_mean": 0.24707595525955106,
+      "trainable_parameters": 8321,
+      "trainable_share": 0.001893614847251209,
+      "elapsed_seconds_mean": 127.05535873333186,
+      "selected_epoch_mean": 1.0
+    }
+  ],
+  "geometry": [
+    {
+      "beta": 0.1,
+      "angle_to_beta_1_deg": 22.985358227793437,
+      "gradient_norm": 0.032191686221932726,
+      "normalized_ess": 0.9996239540804899,
+      "saturated_weight_share": 0.0
+    },
+    {
+      "beta": 0.3,
+      "angle_to_beta_1_deg": 16.816121371694663,
+      "gradient_norm": 0.09996352802897418,
+      "normalized_ess": 0.9966414861117169,
+      "saturated_weight_share": 0.0
+    },
+    {
+      "beta": 1.0,
+      "angle_to_beta_1_deg": 0.0,
+      "gradient_norm": 0.3921319715378217,
+      "normalized_ess": 0.9663987664891395,
+      "saturated_weight_share": 0.0
+    },
+    {
+      "beta": 3.0,
+      "angle_to_beta_1_deg": 19.436398124208214,
+      "gradient_norm": 1.6372819221530845,
+      "normalized_ess": 0.8344657645170769,
+      "saturated_weight_share": 0.03125
+    },
+    {
+      "beta": 10.0,
+      "angle_to_beta_1_deg": 30.389459293356893,
+      "gradient_norm": 6.807055552077311,
+      "normalized_ess": 0.6199165745336102,
+      "saturated_weight_share": 0.3125
+    }
+  ]
+}

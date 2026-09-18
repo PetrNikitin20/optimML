@@ -1,2 +1,9 @@
 numpy>=2.0,<3
 Pillow>=10,<12
+
+# Optional dependencies for scripts/run_lora_experiment.py
+torch==2.8.0
+transformers==4.56.2
+peft==0.17.1
+accelerate==1.10.1
+safetensors==0.6.2
