@@ -1,0 +1,7 @@
+{
+  "pair_loss": 0.6938022412005451,
+  "point_loss": 1.3867136054634217,
+  "pair_directional_error": 6.646391336601054e-13,
+  "point_directional_error": 8.106948532621283e-11,
+  "results_sha256": "81892d2cb4ee7434dcb54c4a99be100dc14809de0388a0da444d59398a1e8cc4"
+}
