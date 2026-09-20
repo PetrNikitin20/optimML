@@ -1,0 +1,584 @@
+{
+  "protocol": {
+    "seed": 20260919,
+    "rewardbench_per_subset": 4,
+    "rewardbench_examples": 92,
+    "rewardbench_note": "Stratified diagnostic subset; not the official RewardBench leaderboard aggregate",
+    "large_model_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "large_model_parameters": 1035079680,
+    "large_model_trainable_parameters": 565248,
+    "large_model_trainable_share": 0.000546091292218199,
+    "large_train_pairs": 24,
+    "large_hh_test_pairs": 48,
+    "large_max_length": 64,
+    "large_lora_rank": 4,
+    "large_lora_alpha": 8,
+    "large_beta": 0.3
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.8.0+cpu"
+  },
+  "hh_manifest": {
+    "dataset": "Anthropic/hh-rlhf",
+    "config": "default",
+    "split": "train",
+    "rows": 2000,
+    "sampling": "deterministic random non-overlapping API pages",
+    "sample_seed": 20260918,
+    "source_api": "https://datasets-server.huggingface.co/rows",
+    "sha256_canonical_jsonl": "e7a1ba050309838772fc8eca5506f601b91b556b7ab3fcddd3f77ee591e096bd",
+    "cache_file": "C:/Users/PETR/Documents/Codex/2026-08-01/new-chat-3/optimML/data/cache/hh_rlhf_2000_seed20260918.jsonl"
+  },
+  "rewardbench_manifest": {
+    "dataset": "allenai/reward-bench",
+    "config": "default",
+    "split": "raw",
+    "rows": 5123,
+    "subsets": [
+      "alpacaeval-easy",
+      "alpacaeval-hard",
+      "alpacaeval-length",
+      "donotanswer",
+      "hep-cpp",
+      "hep-go",
+      "hep-java",
+      "hep-js",
+      "hep-python",
+      "hep-rust",
+      "llmbar-adver-GPTInst",
+      "llmbar-adver-GPTOut",
+      "llmbar-adver-manual",
+      "llmbar-adver-neighbor",
+      "llmbar-natural",
+      "math-prm",
+      "mt-bench-easy",
+      "mt-bench-hard",
+      "mt-bench-med",
+      "refusals-dangerous",
+      "refusals-offensive",
+      "xstest-should-refuse",
+      "xstest-should-respond"
+    ],
+    "sha256_canonical_jsonl": "6cc16e6957fbff52e145f7e2ae8af88eb1f474761b680cf1c0b75e1a50d255a1",
+    "source_api": "https://datasets-server.huggingface.co/rows"
+  },
+  "rewardbench_sample": [
+    {
+      "id": 100,
+      "subset": "alpacaeval-easy"
+    },
+    {
+      "id": 142,
+      "subset": "alpacaeval-easy"
+    },
+    {
+      "id": 359,
+      "subset": "alpacaeval-easy"
+    },
+    {
+      "id": 648,
+      "subset": "alpacaeval-easy"
+    },
+    {
+      "id": 1151,
+      "subset": "alpacaeval-hard"
+    },
+    {
+      "id": 1475,
+      "subset": "alpacaeval-hard"
+    },
+    {
+      "id": 1571,
+      "subset": "alpacaeval-hard"
+    },
+    {
+      "id": 1589,
+      "subset": "alpacaeval-hard"
+    },
+    {
+      "id": 1896,
+      "subset": "alpacaeval-length"
+    },
+    {
+      "id": 2021,
+      "subset": "alpacaeval-length"
+    },
+    {
+      "id": 2183,
+      "subset": "alpacaeval-length"
+    },
+    {
+      "id": 2347,
+      "subset": "alpacaeval-length"
+    },
+    {
+      "id": 3571,
+      "subset": "donotanswer"
+    },
+    {
+      "id": 3573,
+      "subset": "donotanswer"
+    },
+    {
+      "id": 3580,
+      "subset": "donotanswer"
+    },
+    {
+      "id": 3666,
+      "subset": "donotanswer"
+    },
+    {
+      "id": 4025,
+      "subset": "hep-cpp"
+    },
+    {
+      "id": 4101,
+      "subset": "hep-cpp"
+    },
+    {
+      "id": 4157,
+      "subset": "hep-cpp"
+    },
+    {
+      "id": 4170,
+      "subset": "hep-cpp"
+    },
+    {
+      "id": 3856,
+      "subset": "hep-go"
+    },
+    {
+      "id": 3862,
+      "subset": "hep-go"
+    },
+    {
+      "id": 3865,
+      "subset": "hep-go"
+    },
+    {
+      "id": 3954,
+      "subset": "hep-go"
+    },
+    {
+      "id": 4571,
+      "subset": "hep-java"
+    },
+    {
+      "id": 4639,
+      "subset": "hep-java"
+    },
+    {
+      "id": 4648,
+      "subset": "hep-java"
+    },
+    {
+      "id": 4670,
+      "subset": "hep-java"
+    },
+    {
+      "id": 4190,
+      "subset": "hep-js"
+    },
+    {
+      "id": 4252,
+      "subset": "hep-js"
+    },
+    {
+      "id": 4321,
+      "subset": "hep-js"
+    },
+    {
+      "id": 4324,
+      "subset": "hep-js"
+    },
+    {
+      "id": 3724,
+      "subset": "hep-python"
+    },
+    {
+      "id": 3734,
+      "subset": "hep-python"
+    },
+    {
+      "id": 3775,
+      "subset": "hep-python"
+    },
+    {
+      "id": 3812,
+      "subset": "hep-python"
+    },
+    {
+      "id": 4349,
+      "subset": "hep-rust"
+    },
+    {
+      "id": 4351,
+      "subset": "hep-rust"
+    },
+    {
+      "id": 4369,
+      "subset": "hep-rust"
+    },
+    {
+      "id": 4373,
+      "subset": "hep-rust"
+    },
+    {
+      "id": 2777,
+      "subset": "llmbar-adver-GPTInst"
+    },
+    {
+      "id": 2786,
+      "subset": "llmbar-adver-GPTInst"
+    },
+    {
+      "id": 2793,
+      "subset": "llmbar-adver-GPTInst"
+    },
+    {
+      "id": 2800,
+      "subset": "llmbar-adver-GPTInst"
+    },
+    {
+      "id": 2875,
+      "subset": "llmbar-adver-GPTOut"
+    },
+    {
+      "id": 2882,
+      "subset": "llmbar-adver-GPTOut"
+    },
+    {
+      "id": 2890,
+      "subset": "llmbar-adver-GPTOut"
+    },
+    {
+      "id": 2905,
+      "subset": "llmbar-adver-GPTOut"
+    },
+    {
+      "id": 2906,
+      "subset": "llmbar-adver-manual"
+    },
+    {
+      "id": 2933,
+      "subset": "llmbar-adver-manual"
+    },
+    {
+      "id": 2946,
+      "subset": "llmbar-adver-manual"
+    },
+    {
+      "id": 2949,
+      "subset": "llmbar-adver-manual"
+    },
+    {
+      "id": 2659,
+      "subset": "llmbar-adver-neighbor"
+    },
+    {
+      "id": 2690,
+      "subset": "llmbar-adver-neighbor"
+    },
+    {
+      "id": 2741,
+      "subset": "llmbar-adver-neighbor"
+    },
+    {
+      "id": 2763,
+      "subset": "llmbar-adver-neighbor"
+    },
+    {
+      "id": 2541,
+      "subset": "llmbar-natural"
+    },
+    {
+      "id": 2543,
+      "subset": "llmbar-natural"
+    },
+    {
+      "id": 2611,
+      "subset": "llmbar-natural"
+    },
+    {
+      "id": 2631,
+      "subset": "llmbar-natural"
+    },
+    {
+      "id": 4699,
+      "subset": "math-prm"
+    },
+    {
+      "id": 4770,
+      "subset": "math-prm"
+    },
+    {
+      "id": 4789,
+      "subset": "math-prm"
+    },
+    {
+      "id": 4902,
+      "subset": "math-prm"
+    },
+    {
+      "id": 2422,
+      "subset": "mt-bench-easy"
+    },
+    {
+      "id": 2438,
+      "subset": "mt-bench-easy"
+    },
+    {
+      "id": 2439,
+      "subset": "mt-bench-easy"
+    },
+    {
+      "id": 2442,
+      "subset": "mt-bench-easy"
+    },
+    {
+      "id": 2499,
+      "subset": "mt-bench-hard"
+    },
+    {
+      "id": 2523,
+      "subset": "mt-bench-hard"
+    },
+    {
+      "id": 2524,
+      "subset": "mt-bench-hard"
+    },
+    {
+      "id": 2531,
+      "subset": "mt-bench-hard"
+    },
+    {
+      "id": 2454,
+      "subset": "mt-bench-med"
+    },
+    {
+      "id": 2469,
+      "subset": "mt-bench-med"
+    },
+    {
+      "id": 2473,
+      "subset": "mt-bench-med"
+    },
+    {
+      "id": 2478,
+      "subset": "mt-bench-med"
+    },
+    {
+      "id": 2958,
+      "subset": "refusals-dangerous"
+    },
+    {
+      "id": 3020,
+      "subset": "refusals-dangerous"
+    },
+    {
+      "id": 3025,
+      "subset": "refusals-dangerous"
+    },
+    {
+      "id": 3048,
+      "subset": "refusals-dangerous"
+    },
+    {
+      "id": 3056,
+      "subset": "refusals-offensive"
+    },
+    {
+      "id": 3075,
+      "subset": "refusals-offensive"
+    },
+    {
+      "id": 3091,
+      "subset": "refusals-offensive"
+    },
+    {
+      "id": 3108,
+      "subset": "refusals-offensive"
+    },
+    {
+      "id": 3222,
+      "subset": "xstest-should-refuse"
+    },
+    {
+      "id": 3232,
+      "subset": "xstest-should-refuse"
+    },
+    {
+      "id": 3277,
+      "subset": "xstest-should-refuse"
+    },
+    {
+      "id": 3555,
+      "subset": "xstest-should-refuse"
+    },
+    {
+      "id": 3407,
+      "subset": "xstest-should-respond"
+    },
+    {
+      "id": 3430,
+      "subset": "xstest-should-respond"
+    },
+    {
+      "id": 3465,
+      "subset": "xstest-should-respond"
+    },
+    {
+      "id": 3484,
+      "subset": "xstest-should-respond"
+    }
+  ],
+  "bert_registered_run": {
+    "method": "lora",
+    "seed": 47,
+    "beta": 0.3,
+    "validation_accuracy": 0.5233333333333333,
+    "test_accuracy": 0.5533333333333333,
+    "test_pair_loss": 0.6837033388887276,
+    "test_brier": 0.24530702060963175,
+    "test_margin": 0.07290782429277896,
+    "trainable_parameters": 8321,
+    "total_parameters": 4394241,
+    "elapsed_seconds": 122.59097660001134,
+    "selected_epoch": 1
+  },
+  "bert_rewardbench": [
+    {
+      "category": "Chat",
+      "count": 20,
+      "accuracy": 0.45
+    },
+    {
+      "category": "Chat Hard",
+      "count": 24,
+      "accuracy": 0.2916666666666667
+    },
+    {
+      "category": "Safety",
+      "count": 20,
+      "accuracy": 0.45
+    },
+    {
+      "category": "Reasoning",
+      "count": 28,
+      "accuracy": 0.6785714285714286
+    },
+    {
+      "category": "Macro categories",
+      "count": 92,
+      "accuracy": 0.4675595238095238
+    },
+    {
+      "category": "Micro examples",
+      "count": 92,
+      "accuracy": 0.4782608695652174
+    }
+  ],
+  "tinyllama_training": {
+    "steps": 24,
+    "loss_first": 0.5347874164581299,
+    "loss_last": 0.5279132127761841,
+    "loss_mean": 0.7379821750024954,
+    "elapsed_seconds": 544.3398349999916
+  },
+  "tinyllama_hh_before_accuracy": 0.4791666666666667,
+  "tinyllama_hh_after_accuracy": 0.4583333333333333,
+  "tinyllama_rewardbench_before": [
+    {
+      "category": "Chat",
+      "count": 20,
+      "accuracy": 0.4
+    },
+    {
+      "category": "Chat Hard",
+      "count": 24,
+      "accuracy": 0.375
+    },
+    {
+      "category": "Safety",
+      "count": 20,
+      "accuracy": 0.4
+    },
+    {
+      "category": "Reasoning",
+      "count": 28,
+      "accuracy": 0.5
+    },
+    {
+      "category": "Macro categories",
+      "count": 92,
+      "accuracy": 0.41875
+    },
+    {
+      "category": "Micro examples",
+      "count": 92,
+      "accuracy": 0.42391304347826086
+    }
+  ],
+  "tinyllama_rewardbench_after": [
+    {
+      "category": "Chat",
+      "count": 20,
+      "accuracy": 0.45
+    },
+    {
+      "category": "Chat Hard",
+      "count": 24,
+      "accuracy": 0.4583333333333333
+    },
+    {
+      "category": "Safety",
+      "count": 20,
+      "accuracy": 0.45
+    },
+    {
+      "category": "Reasoning",
+      "count": 28,
+      "accuracy": 0.4642857142857143
+    },
+    {
+      "category": "Macro categories",
+      "count": 92,
+      "accuracy": 0.45565476190476195
+    },
+    {
+      "category": "Micro examples",
+      "count": 92,
+      "accuracy": 0.45652173913043476
+    }
+  ],
+  "bert_rewardbench_accuracy_interval": {
+    "accuracy": 0.4782608695652174,
+    "bootstrap_ci_low": 0.3695652173913043,
+    "bootstrap_ci_high": 0.5760869565217391,
+    "n": 92
+  },
+  "tinyllama_rewardbench_before_accuracy_interval": {
+    "accuracy": 0.42391304347826086,
+    "bootstrap_ci_low": 0.32608695652173914,
+    "bootstrap_ci_high": 0.5217391304347826,
+    "n": 92
+  },
+  "tinyllama_rewardbench_after_accuracy_interval": {
+    "accuracy": 0.45652173913043476,
+    "bootstrap_ci_low": 0.358695652173913,
+    "bootstrap_ci_high": 0.5546195652173874,
+    "n": 92
+  },
+  "tinyllama_rewardbench_paired_change": {
+    "n": 92,
+    "accuracy_change": 0.03260869565217391,
+    "bootstrap_ci_low": -0.043478260869565216,
+    "bootstrap_ci_high": 0.10869565217391304,
+    "improved_examples": 8,
+    "harmed_examples": 5,
+    "unchanged_examples": 79,
+    "exact_sign_test_two_sided_p": 0.5810546875
+  }
+}

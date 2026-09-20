@@ -19,4 +19,11 @@
 10. Lambert N. et al. RewardBench: Evaluating Reward Models for Language Modeling // Findings of NAACL. 2025. P. 1755–1797. DOI: 10.18653/v1/2025.findings-naacl.96. URL: <https://aclanthology.org/2025.findings-naacl.96/>. Современный набор проверок reward-моделей на диалогах, рассуждениях и безопасности.
 11. Yang K. et al. Selective Preference Optimization via Token-Level Reward Function Estimation // Proceedings of EMNLP. 2025. P. 7032–7056. DOI: 10.18653/v1/2025.emnlp-main.359. URL: <https://aclanthology.org/2025.emnlp-main.359/>. Оптимизация только информативных токенов с уменьшением вычислительных затрат.
 
-Для расширения текущего эксперимента наиболее важны LoRA+, PiSSA и RewardBench: первые два дают проверяемые альтернативы параметризации адаптера, а RewardBench — внешнюю оценку переносимости reward-модели за пределами HH-RLHF.
+## Малые модели и внешние benchmark-проверки
+
+12. Zhang P., Zeng G., Wang T., Lu W. TinyLlama: An Open-Source Small Language Model. arXiv:2401.02385. 2024. URL: <https://arxiv.org/abs/2401.02385>. Открытая Llama-подобная модель 1,1B, использованная в CPU-пилоте настоящего исследования.
+13. Gureja S. et al. M-RewardBench: Evaluating Reward Models in Multilingual Settings // Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics. 2025. P. 43–58. DOI: 10.18653/v1/2025.acl-long.3. URL: <https://aclanthology.org/2025.acl-long.3/>. Содержит 2,87 тыс. пар на 23 языках и прямо мотивирует отдельную русскоязычную проверку.
+14. Jin Z. et al. RAG-RewardBench: Benchmarking Reward Models in Retrieval Augmented Generation for Preference Alignment // Findings of ACL. 2025. P. 17061–17090. DOI: 10.18653/v1/2025.findings-acl.877. URL: <https://aclanthology.org/2025.findings-acl.877/>. Проверяет multi-hop reasoning, корректность цитирования, уместный отказ и устойчивость к конфликтам источников в RAG.
+15. Allen Institute for AI. RewardBench 2 dataset card. URL: <https://huggingface.co/datasets/allenai/reward-bench-2>. Актуальное продолжение внешней оценки reward-моделей; целесообразно использовать после полного прогона оригинального RewardBench.
+
+Для расширения текущего эксперимента наиболее важны LoRA+, PiSSA, полный RewardBench и M-RewardBench: первые два дают проверяемые альтернативы параметризации адаптера, а benchmark-наборы — внешнюю и многоязычную оценку переносимости reward-модели за пределами HH-RLHF.
