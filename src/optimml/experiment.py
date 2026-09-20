@@ -125,7 +125,7 @@ def bootstrap_accuracy(margins: np.ndarray, seed: int, replicates: int = 2000) -
     return float(lo), float(hi)
 
 
-def write_plot(rows: list[dict], output: Path):
+def write_plot(rows: list[dict], output: Path, language: str = "ru"):
     width, height = 1600, 900
     image = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(image)
@@ -135,7 +135,22 @@ def write_plot(rows: list[dict], output: Path):
     small = ImageFont.truetype(str(regular_path), 28) if regular_path.exists() else ImageFont.load_default(size=22)
     tiny = ImageFont.truetype(str(regular_path), 23) if regular_path.exists() else ImageFont.load_default(size=18)
     margin = 130
-    draw.text((margin, 22), "Геометрия пакетного градиента на HH-RLHF", fill="black", font=font)
+    labels = {
+        "ru": (
+            "Геометрия пакетного градиента на HH-RLHF",
+            "Угол к градиенту при β=1, градусы",
+            "Нормированный ESS",
+        ),
+        "en": (
+            "Mini-batch gradient geometry on HH-RLHF",
+            "Angle to the gradient at β=1, degrees",
+            "Normalized ESS",
+        ),
+    }
+    if language not in labels:
+        raise ValueError(f"Unsupported plot language: {language}")
+    title, angle_label, ess_label = labels[language]
+    draw.text((margin, 22), title, fill="black", font=font)
     betas = [row["beta"] for row in rows]
     log_betas = np.log10(betas)
     xmin, xmax = min(log_betas), max(log_betas)
@@ -159,8 +174,8 @@ def write_plot(rows: list[dict], output: Path):
 
     angles = [row["angle_to_beta_1_deg"] for row in rows]
     ess = [row["normalized_ess"] for row in rows]
-    panel(105, 405, angles, 0.0, 50.0, "#1f4e79", "Угол к градиенту при β=1, градусы")
-    panel(505, 805, ess, 0.5, 1.0, "#a61c00", "Нормированный ESS")
+    panel(105, 405, angles, 0.0, 50.0, "#1f4e79", angle_label)
+    panel(505, 805, ess, 0.5, 1.0, "#a61c00", ess_label)
     draw.text((width // 2 - 25, 850), "β", fill="black", font=small)
     image.save(output, dpi=(300, 300))
 

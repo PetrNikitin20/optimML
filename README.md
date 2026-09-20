@@ -1,6 +1,6 @@
 # optimML
 
-Reproducible materials for the Russian draft of the SUMMA 2026 conference paper on gradient geometry and pairwise versus pointwise preference optimization.
+Reproducible materials for the Russian and English drafts of the SUMMA 2026 conference paper on gradient geometry and pairwise versus pointwise preference optimization.
 
 ## What is measured
 
