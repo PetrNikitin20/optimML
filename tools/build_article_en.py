@@ -23,10 +23,10 @@ FIGURE = ROOT / "results" / "gradient_geometry_en.png"
 
 TRANSLATIONS = [
     "Gradient Geometry and LoRA Adaptation in Preference Learning",
-    "Alexey P. Malakhov",
-    "Department of Artificial Intelligence, Faculty of Information Technology and Big Data Analysis",
-    "Financial University under the Government of the Russian Federation, Moscow, Russia",
-    "[add email address or ORCID before submission]",
+    "Petr Vladimirovich Nikitin, Candidate of Pedagogical Sciences, Associate Professor",
+    "Associate Professor, Department of Artificial Intelligence",
+    "Financial University under the Government of the Russian Federation",
+    "Moscow, Russia",
     None,
     None,
     "INTRODUCTION",
@@ -164,8 +164,8 @@ def build() -> None:
                             run.text = run.text.replace("—", "–")
 
     doc.core_properties.title = "Gradient Geometry and LoRA Adaptation in Preference Learning"
-    doc.core_properties.author = "Alexey P. Malakhov"
-    doc.core_properties.last_modified_by = "Alexey P. Malakhov"
+    doc.core_properties.author = "Petr Vladimirovich Nikitin"
+    doc.core_properties.last_modified_by = "Petr Vladimirovich Nikitin"
     doc.core_properties.subject = "English manuscript for SUMMA 2026"
     doc.core_properties.keywords = "preference optimization, gradient geometry, LoRA, reward model, RewardBench, TinyLlama"
     doc.save(OUTPUT)

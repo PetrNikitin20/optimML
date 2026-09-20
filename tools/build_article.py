@@ -214,17 +214,17 @@ def build():
 
     author = doc.add_paragraph(style="Author")
     author.paragraph_format.space_before = Pt(6)
-    set_font(author.add_run("Алексей П. Малахов"), size=11)
+    set_font(author.add_run("Никитин Петр Владимирович, к.пед.н., доцент"), size=11)
     affiliation = doc.add_paragraph(style="Author")
     affiliation.paragraph_format.space_before = Pt(0)
-    set_font(affiliation.add_run("Департамент искусственного интеллекта, факультет информационных технологий и анализа больших данных"), size=10, italic=True)
+    set_font(affiliation.add_run("доцент кафедры искусственного интеллекта"), size=10, italic=True)
     organization = doc.add_paragraph(style="Author")
     organization.paragraph_format.space_before = Pt(0)
-    set_font(organization.add_run("Финансовый университет при Правительстве Российской Федерации, Москва, Россия"), size=10, italic=True)
+    set_font(organization.add_run("Финансовый университет при Правительстве Российской Федерации"), size=10, italic=True)
     contact = doc.add_paragraph(style="Author")
     contact.paragraph_format.space_before = Pt(0)
     contact.paragraph_format.space_after = Pt(8)
-    set_font(contact.add_run("[указать электронную почту или ORCID перед подачей]"), size=9)
+    set_font(contact.add_run("Москва, Россия"), size=9)
 
     body_section = doc.add_section(WD_SECTION.CONTINUOUS)
     body_section.left_margin = Inches(0.62)
@@ -411,7 +411,8 @@ def build():
     set_columns(balancing_section, 1, 360)
 
     doc.core_properties.title = "Геометрия градиента и LoRA-адаптация при обучении по предпочтениям"
-    doc.core_properties.author = "Алексей П. Малахов"
+    doc.core_properties.author = "Никитин Петр Владимирович"
+    doc.core_properties.last_modified_by = "Никитин Петр Владимирович"
     doc.core_properties.subject = "Русский проект статьи для SUMMA 2026"
     doc.core_properties.keywords = "preference optimization, gradient geometry, LoRA, reward model, HH-RLHF"
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
