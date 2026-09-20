@@ -26,7 +26,7 @@ TRANSLATIONS = [
     "Petr Vladimirovich Nikitin, Candidate of Pedagogical Sciences, Associate Professor",
     "Associate Professor, Department of Artificial Intelligence",
     "Financial University under the Government of the Russian Federation",
-    "Moscow, Russia",
+    "Moscow, Russia; pvnikitin@fa.ru; ORCID: 0000-0001-8866-5610",
     None,
     None,
     "INTRODUCTION",

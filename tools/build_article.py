@@ -224,7 +224,12 @@ def build():
     contact = doc.add_paragraph(style="Author")
     contact.paragraph_format.space_before = Pt(0)
     contact.paragraph_format.space_after = Pt(8)
-    set_font(contact.add_run("Москва, Россия"), size=9)
+    set_font(
+        contact.add_run(
+            "Москва, Россия; pvnikitin@fa.ru; ORCID: 0000-0001-8866-5610"
+        ),
+        size=9,
+    )
 
     body_section = doc.add_section(WD_SECTION.CONTINUOUS)
     body_section.left_margin = Inches(0.62)
