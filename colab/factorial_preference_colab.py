@@ -658,7 +658,7 @@ def evaluate_pairs(rows: list[dict[str, str]]) -> tuple[dict[str, float], pd.Dat
 
 
 eval_metrics, row_metrics = evaluate_pairs(eval_pairs)
-row_path = OUTPUT_ROOT / "runs" / f"{run_key}_rows.parquet"
+row_path = RUN_DIR / f"{run_key}_rows.parquet"
 row_metrics.to_parquet(row_path, index=False)
 print(eval_metrics)
 
