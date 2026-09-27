@@ -17,9 +17,11 @@ class FactorialPilotResultTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.all_results = [json.loads(path.read_text(encoding="utf-8")) for path in RESULTS]
-        cls.results = [item for item in cls.all_results if item["config"]["loss"] == "pairwise"]
+        cls.pairwise = [item for item in cls.all_results if item["config"]["loss"] == "pairwise"]
+        cls.results = [item for item in cls.pairwise if item["config"]["noise"] == 0.0]
         cls.summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
-        cls.pointwise = [item for item in cls.all_results if item["config"]["loss"] == "pointwise"]
+        cls.pointwise_all = [item for item in cls.all_results if item["config"]["loss"] == "pointwise"]
+        cls.pointwise = [item for item in cls.pointwise_all if item["config"]["noise"] == 0.0]
         cls.pointwise_summary = json.loads(POINTWISE_SUMMARY.read_text(encoding="utf-8"))
         cls.paired_summary = json.loads(PAIRED_SUMMARY.read_text(encoding="utf-8"))
 
@@ -47,6 +49,16 @@ class FactorialPilotResultTests(unittest.TestCase):
             seed = item["config"]["seed"]
             with self.subTest(seed=seed):
                 self.assertEqual(item["data_sha256"], pairwise_by_seed[seed]["data_sha256"])
+
+    def test_noise_point_one_series_grows_in_manifest_order(self):
+        noise_results = [item for item in self.pairwise if item["config"]["noise"] == 0.1]
+        self.assertEqual({item["run_index"] for item in noise_results}, {3, 4})
+        self.assertEqual({item["config"]["seed"] for item in noise_results}, {11, 29})
+        for item in noise_results:
+            self.assertEqual(item["config"]["dataset"], "ultrafeedback")
+            self.assertEqual(item["config"]["model_label"], "3B")
+            self.assertEqual(item["config"]["loss"], "pairwise")
+            self.assertEqual(item["config"]["noise"], 0.1)
 
     def test_pilot_sample_and_step_accounting(self):
         for item in self.all_results:
