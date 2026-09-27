@@ -35,6 +35,7 @@ The linear experiment requires `numpy` and `Pillow`; the LoRA experiment additio
 - `scripts/run_lora_experiment.py`: Transformer reward-model and LoRA experiment;
 - `scripts/run_external_benchmark.py`: registered BERT-tiny evaluation and TinyLlama 1.1B LoRA pilot on RewardBench;
 - `scripts/recompute_external_statistics.py`: bootstrap intervals and paired exact sign test from row-level predictions;
+- `colab/factorial_preference_study.ipynb`: sharded Google Colab experiment for the 288-cell real-data factorial design;
 - `tests/test_math.py`: finite-difference and invariant tests;
 - `results`: machine-readable run-level and aggregate results plus the generated figure;
 - `article`: conference manuscript and the official template copy.
