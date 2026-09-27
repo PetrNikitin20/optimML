@@ -453,6 +453,7 @@ def preference_loss(batch: dict[str, torch.Tensor], kind: str) -> tuple[torch.Te
 
 def validate_trainable_gradients() -> dict[str, float]:
     """Fail fast before a long run if checkpointing detached the LoRA graph."""
+    set_seed(cfg.seed)
     model.train()
     model.zero_grad(set_to_none=True)
     loss, _ = preference_loss(collate_pairs([train_pairs[0]]), cfg.loss)

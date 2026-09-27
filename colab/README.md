@@ -34,3 +34,9 @@ The exact 8B grid uses `Qwen/Qwen3-8B`, while the 3B and 14B cells use Qwen2.5 c
 No table in the article should be populated until the corresponding JSON files exist and pass consistency checks.
 
 Before training, the notebook performs a nonzero finite-gradient preflight. Training logs every optimizer step with a measured ETA and writes restartable LoRA/optimizer/RNG checkpoints to Drive. A resumed run therefore restarts at an optimizer boundary instead of silently repeating the entire cell.
+
+## Verified smoke run
+
+`results/factorial_smoke/000_pairwise_3B_ultrafeedback_noise0.0_seed11.json` is a real-data end-to-end validation run completed on a Tesla T4. It uses Qwen2.5-3B-Instruct, pairwise loss, UltraFeedback, zero injected label noise and seed 11. The run verifies dataset loading, QLoRA training, checkpoint resume, ranking and calibration metrics, KL, generation judging, finite-difference Hessian-vector products, empirical Fisher estimates and cost accounting.
+
+This artifact is deliberately labelled `smoke`: it has two optimizer steps, 16 evaluation pairs and two generation prompts. It is evidence that the pipeline executes and persists coherent measurements, not evidence for a comparison between losses, model sizes, datasets or noise levels. Inferential claims require the preregistered `full` results from all relevant seeds.
