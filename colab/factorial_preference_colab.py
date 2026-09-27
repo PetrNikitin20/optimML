@@ -675,6 +675,8 @@ def flatten_tensors(tensors: Iterable[torch.Tensor | None], params: list[torch.n
 
 
 def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
+    gc.collect()
+    torch.cuda.empty_cache()
     model.train()
     params = trainable_parameters()
     sample = rows[: cfg.curvature_batches]
@@ -694,31 +696,57 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
     vector = [torch.randn_like(p) for p in params]
     norm = torch.sqrt(sum((v.float().square().sum() for v in vector))).clamp_min(1e-12)
     vector = [v / norm.to(v.dtype) for v in vector]
-    eigenvalue = torch.tensor(float("nan"), device=params[0].device)
+    eigenvalue = float("nan")
     batch = batches[0]
+
+    def gradient_at_offset(direction: list[torch.Tensor], offset: float) -> list[torch.Tensor]:
+        with torch.no_grad():
+            for param, value in zip(params, direction):
+                param.add_(value, alpha=offset)
+        try:
+            model.zero_grad(set_to_none=True)
+            loss, _ = preference_loss(batch, cfg.loss)
+            grads = torch.autograd.grad(loss, params, allow_unused=True)
+            return [
+                torch.zeros_like(param, device="cpu", dtype=torch.float32)
+                if grad is None
+                else grad.detach().float().cpu()
+                for grad, param in zip(grads, params)
+            ]
+        finally:
+            with torch.no_grad():
+                for param, value in zip(params, direction):
+                    param.add_(value, alpha=-offset)
+            model.zero_grad(set_to_none=True)
+            torch.cuda.empty_cache()
+
+    # A central finite-difference HVP avoids retaining the full second-order
+    # autograd graph, which otherwise exceeds the memory of a 16 GB T4.
+    epsilon = 1e-3
     for _ in range(cfg.hessian_power_iterations):
-        model.zero_grad(set_to_none=True)
-        loss, _ = preference_loss(batch, cfg.loss)
-        grads = torch.autograd.grad(loss, params, create_graph=True, allow_unused=True)
-        dot = sum(
-            (g * v).sum() for g, v in zip(grads, vector) if g is not None
-        )
-        hv = torch.autograd.grad(dot, params, allow_unused=True)
-        flat_hv = flatten_tensors(hv, params)
-        hv_norm = flat_hv.float().norm().clamp_min(1e-12)
-        eigenvalue = sum(
-            (v * (h if h is not None else torch.zeros_like(p))).sum()
-            for v, h, p in zip(vector, hv, params)
-        )
+        grad_plus = gradient_at_offset(vector, epsilon)
+        grad_minus = gradient_at_offset(vector, -epsilon)
+        hv_cpu = [(plus - minus) / (2.0 * epsilon) for plus, minus in zip(grad_plus, grad_minus)]
+        eigenvalue = float(sum(
+            (value.detach().float().cpu() * hv).sum().item()
+            for value, hv in zip(vector, hv_cpu)
+        ))
+        hv_norm = math.sqrt(sum(hv.square().sum().item() for hv in hv_cpu))
+        hv_norm = max(hv_norm, 1e-12)
         vector = [
-            (h if h is not None else torch.zeros_like(p)) / hv_norm.to(p.dtype)
-            for h, p in zip(hv, params)
+            (hv / hv_norm).to(device=param.device, dtype=param.dtype)
+            for hv, param in zip(hv_cpu, params)
         ]
+        del grad_plus, grad_minus, hv_cpu
+        gc.collect()
+        torch.cuda.empty_cache()
     model.eval()
     return {
         "empirical_fisher_top_eigenvalue": fisher_top,
         "empirical_fisher_trace": fisher_trace,
-        "hessian_top_eigenvalue_power": float(eigenvalue.detach().float().cpu()),
+        "hessian_top_eigenvalue_power": eigenvalue,
+        "hessian_hvp_method": "central_finite_difference",
+        "hessian_hvp_epsilon": epsilon,
         "curvature_batches": len(batches),
     }
 
