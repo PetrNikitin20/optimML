@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scope": "pilot_not_inferential",
+  "configuration": {
+    "loss": "pairwise",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "ultrafeedback",
+    "noise": 0.0,
+    "execution_profile": "pilot"
+  },
+  "seeds": [11, 29, 47],
+  "n_seeds": 3,
+  "aggregation": "arithmetic mean and sample standard deviation across seeds",
+  "ddof": 1,
+  "metrics": {
+    "likelihood_ranking_accuracy": {"mean": 0.5729166666666666, "sd": 0.039322054350368486, "n": 3},
+    "brier": {"mean": 0.2502485201940005, "sd": 0.003157749573570513, "n": 3},
+    "ece_15": {"mean": 0.4998570850712776, "sd": 0.0027741122654312577, "n": 3},
+    "c_mean": {"mean": -0.12579268575063907, "sd": 0.10316489136469645, "n": 3},
+    "d_mean": {"mean": 0.0029343496814059713, "sd": 0.1160571900024863, "n": 3},
+    "kl_to_sft": {"mean": 0.022014225647371707, "sd": 0.003881538923304122, "n": 3},
+    "generation_win_rate_vs_sft": {"mean": 0.4583333333333333, "sd": 0.14433756729740643, "n": 3},
+    "mean_reward_delta": {"mean": 0.10421404211471479, "sd": 0.18251900714830305, "n": 3},
+    "policy_response_length_tokens": {"mean": 114.375, "sd": 21.575086905966334, "n": 3},
+    "sft_response_length_tokens": {"mean": 109.20833333333333, "sd": 14.266620424379887, "n": 3},
+    "empirical_fisher_top_eigenvalue": {"mean": 0.34320678779234487, "sd": 0.5041128116860238, "n": 3},
+    "empirical_fisher_trace": {"mean": 0.3628097486992677, "sd": 0.5223081962471555, "n": 3},
+    "hessian_top_eigenvalue_power": {"mean": 356.38398679945533, "sd": 615.6742568995226, "n": 3},
+    "train_seconds": {"mean": 193.11582157533334, "sd": 4.791411876791474, "n": 3},
+    "examples_per_second": {"mean": 0.20721437315338412, "sd": 0.005126522961510258, "n": 3},
+    "peak_gpu_memory_gb": {"mean": 3.9438441594441733, "sd": 0.0036648210446607104, "n": 3}
+  },
+  "warnings": [
+    "This series estimates repeatability for one configuration only and does not compare losses, model sizes, datasets, or noise levels.",
+    "Generation metrics use eight prompts per seed and therefore have high sampling uncertainty.",
+    "The Hessian estimate is numerically unstable across seeds and must not support a scientific claim without epsilon and iteration sensitivity analysis."
+  ]
+}

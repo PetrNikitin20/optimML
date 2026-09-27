@@ -41,8 +41,8 @@ Before training, the notebook performs a nonzero finite-gradient preflight. Trai
 
 This artifact is deliberately labelled `smoke`: it has two optimizer steps, 16 evaluation pairs and two generation prompts. It is evidence that the pipeline executes and persists coherent measurements, not evidence for a comparison between losses, model sizes, datasets or noise levels. Inferential claims require the preregistered `full` results from all relevant seeds.
 
-## Verified pilot run
+## Verified three-seed pilot series
 
-`results/factorial_pilot/000_pairwise_3B_ultrafeedback_noise0.0_seed11.json` records the first measured pilot on a Tesla T4. It uses 256 training pairs, 64 evaluation pairs, ten optimizer steps and eight generation prompts. Training took 188.54 seconds at 0.212 examples per second and peaked at 3.94 GiB of GPU memory. The artifact is a throughput and instrumentation pilot, not one of the 288 inferential `full` cells.
+`results/factorial_pilot` contains measured pilots for seeds 11, 29 and 47 on a Tesla T4. Every run uses 256 training pairs, 64 evaluation pairs, ten optimizer steps and eight generation prompts. Across seeds, training took 193.12 +/- 4.79 seconds, throughput was 0.207 +/- 0.005 examples per second, likelihood-ranking accuracy was 0.573 +/- 0.039, and generation win rate against SFT was 0.458 +/- 0.144 (mean +/- sample SD).
 
-The pilot's finite-difference Hessian power estimate is much larger than the smoke estimate. It must be treated as a numerical diagnostic until replicated across seeds and checked for stability across finite-difference step sizes. No scientific claim should rely on this single curvature value.
+The summary is stored in `pairwise_3B_ultrafeedback_noise0.0_summary.json`. This is a repeatability and instrumentation series for one factor cell, not one of the 288 inferential `full` cells. The finite-difference Hessian estimate is extremely unstable across seeds (356.38 +/- 615.67) and must remain a numerical diagnostic until checked across step sizes and power-iteration counts. The next informative pilot is the matching pointwise-loss series at indices 144, 145 and 146; it creates the first loss contrast while holding model, dataset and noise fixed.
