@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "execution_profile": "pilot",
+  "run_index": 145,
+  "run_key": "145_pointwise_3B_ultrafeedback_noise0.0_seed29",
+  "config": {
+    "loss": "pointwise",
+    "model_label": "3B",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "ultrafeedback",
+    "noise": 0.0,
+    "seed": 29,
+    "train_pairs": 256,
+    "eval_pairs": 64,
+    "max_length": 192,
+    "max_steps": 10,
+    "batch_size": 1,
+    "grad_accum": 4,
+    "learning_rate": 0.0002,
+    "beta": 0.1,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "curvature_batches": 2,
+    "hessian_power_iterations": 2,
+    "generation_prompts": 8,
+    "checkpoint_every": 5,
+    "log_every": 1
+  },
+  "system": {
+    "gpu": "Tesla T4",
+    "gpu_memory_gb": 14.563,
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "python": "3.13.15"
+  },
+  "data_sha256": "53d05b852e0906a1d41247261deadbecd964ad8ba188754715e70b2d9e1b4089",
+  "gradient_preflight": {
+    "loss": 0.6931471824645996,
+    "grad_norm": 0.0833694264292717
+  },
+  "train": {
+    "train_loss_last_25": 0.698896610736847,
+    "train_seconds": 193.17089777,
+    "optimizer_steps": 10,
+    "examples_seen": 40,
+    "examples_per_second": 0.20707052905881412,
+    "peak_gpu_memory_gb": 3.94596004486084,
+    "trainable_parameters": 29933568,
+    "total_parameters": 1728606208,
+    "adapter_path": "/content/drive/MyDrive/optimML_factorial/adapters/pilot/145_pointwise_3B_ultrafeedback_noise0.0_seed29",
+    "checkpoint_path": "/content/drive/MyDrive/optimML_factorial/checkpoints/pilot/145_pointwise_3B_ultrafeedback_noise0.0_seed29.pt",
+    "execution_profile": "pilot"
+  },
+  "evaluation": {
+    "likelihood_ranking_accuracy": 0.578125,
+    "brier": 0.247565520161985,
+    "ece_15": 0.49721582607602477,
+    "c_mean": -0.1323927155463025,
+    "c_abs_mean": 0.1429805251536891,
+    "c_sd": 0.2522504734396786,
+    "d_mean": 0.11347960610873997,
+    "d_abs_mean": 0.2516812433023006,
+    "d_sd": 0.7605564938066985,
+    "n_eval_pairs": 64
+  },
+  "kl_to_sft": 0.017358557450013214,
+  "curvature": {
+    "empirical_fisher_top_eigenvalue": 0.0020484011620283127,
+    "empirical_fisher_trace": 0.0029976621735841036,
+    "hessian_top_eigenvalue_power": -0.04682803143381875,
+    "hessian_hvp_method": "central_finite_difference",
+    "hessian_hvp_epsilon": 0.001,
+    "curvature_batches": 2
+  },
+  "generation": {
+    "judge_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+    "generation_win_rate_vs_sft": 0.5,
+    "generation_tie_rate": 0.125,
+    "mean_reward_delta": 0.20335760293528438,
+    "policy_response_length_tokens": 125.625,
+    "sft_response_length_tokens": 125.0,
+    "n_generation_prompts": 8
+  },
+  "row_metrics_path": "/content/drive/MyDrive/optimML_factorial/runs/pilot/145_pointwise_3B_ultrafeedback_noise0.0_seed29_rows.parquet",
+  "completed_utc": "2026-09-27T16:30:16.572682+00:00",
+  "verification_note": "Gradient preflight and training cost fields retained from the original uninterrupted training run; evaluation resumed from the exact step-10 checkpoint."
+}

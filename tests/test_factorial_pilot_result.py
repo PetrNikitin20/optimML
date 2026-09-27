@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RESULT_DIR = ROOT / "results" / "factorial_pilot"
 RESULTS = sorted(RESULT_DIR.glob("[0-9][0-9][0-9]_*.json"))
 SUMMARY = RESULT_DIR / "pairwise_3B_ultrafeedback_noise0.0_summary.json"
+POINTWISE_SUMMARY = RESULT_DIR / "pointwise_3B_ultrafeedback_noise0.0_summary.json"
+PAIRED_SUMMARY = RESULT_DIR / "paired_loss_contrast_3B_ultrafeedback_noise0.0_summary.json"
 
 
 class FactorialPilotResultTests(unittest.TestCase):
@@ -17,6 +19,9 @@ class FactorialPilotResultTests(unittest.TestCase):
         cls.all_results = [json.loads(path.read_text(encoding="utf-8")) for path in RESULTS]
         cls.results = [item for item in cls.all_results if item["config"]["loss"] == "pairwise"]
         cls.summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
+        cls.pointwise = [item for item in cls.all_results if item["config"]["loss"] == "pointwise"]
+        cls.pointwise_summary = json.loads(POINTWISE_SUMMARY.read_text(encoding="utf-8"))
+        cls.paired_summary = json.loads(PAIRED_SUMMARY.read_text(encoding="utf-8"))
 
     def test_three_seed_series_identity(self):
         self.assertEqual(len(self.results), 3)
@@ -32,13 +37,16 @@ class FactorialPilotResultTests(unittest.TestCase):
                 self.assertEqual(item["config"]["loss"], "pairwise")
                 self.assertEqual(item["config"]["noise"], 0.0)
 
-    def test_pointwise_seed_11_contrast_exists(self):
-        pointwise = [item for item in self.all_results if item["config"]["loss"] == "pointwise"]
-        self.assertEqual(len(pointwise), 1)
-        self.assertEqual(pointwise[0]["run_index"], 144)
-        self.assertEqual(pointwise[0]["config"]["seed"], 11)
-        pairwise_11 = next(item for item in self.results if item["config"]["seed"] == 11)
-        self.assertEqual(pointwise[0]["data_sha256"], pairwise_11["data_sha256"])
+    def test_completed_pointwise_contrasts_are_matched(self):
+        pointwise = self.pointwise
+        self.assertEqual(len(pointwise), 3)
+        self.assertEqual({item["run_index"] for item in pointwise}, {144, 145, 146})
+        self.assertEqual({item["config"]["seed"] for item in pointwise}, {11, 29, 47})
+        pairwise_by_seed = {item["config"]["seed"]: item for item in self.results}
+        for item in pointwise:
+            seed = item["config"]["seed"]
+            with self.subTest(seed=seed):
+                self.assertEqual(item["data_sha256"], pairwise_by_seed[seed]["data_sha256"])
 
     def test_pilot_sample_and_step_accounting(self):
         for item in self.all_results:
@@ -82,6 +90,25 @@ class FactorialPilotResultTests(unittest.TestCase):
         metric = self.summary["metrics"]["likelihood_ranking_accuracy"]
         self.assertAlmostEqual(metric["mean"], statistics.mean(values))
         self.assertAlmostEqual(metric["sd"], statistics.stdev(values))
+
+    def test_pointwise_summary_accuracy_is_recomputable(self):
+        values = [item["evaluation"]["likelihood_ranking_accuracy"] for item in self.pointwise]
+        metric = self.pointwise_summary["metrics"]["likelihood_ranking_accuracy"]
+        self.assertEqual(self.pointwise_summary["scope"], "pilot_not_inferential")
+        self.assertAlmostEqual(metric["mean"], statistics.mean(values))
+        self.assertAlmostEqual(metric["sd"], statistics.stdev(values))
+
+    def test_paired_loss_contrast_is_recomputable(self):
+        pairwise = {item["config"]["seed"]: item for item in self.results}
+        deltas = [
+            item["evaluation"]["likelihood_ranking_accuracy"]
+            - pairwise[item["config"]["seed"]]["evaluation"]["likelihood_ranking_accuracy"]
+            for item in self.pointwise
+        ]
+        metric = self.paired_summary["metrics"]["likelihood_ranking_accuracy"]
+        self.assertTrue(self.paired_summary["data_hashes_matched_within_seed"])
+        self.assertAlmostEqual(metric["mean_delta"], statistics.mean(deltas))
+        self.assertAlmostEqual(metric["sd_delta"], statistics.stdev(deltas))
 
 
 if __name__ == "__main__":

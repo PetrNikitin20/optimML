@@ -15,6 +15,8 @@ The second experiment fine-tunes a real pretrained Transformer reward model. It 
 
 The external pilot adds `TinyLlama/TinyLlama-1.1B-Chat-v1.0` with a scalar sequence-classification head and LoRA rank 4 on `q_proj`/`v_proj`. It trains 565,248 of 1,035,079,680 parameters on 24 HH-RLHF pairs and evaluates before/after adaptation on 48 held-out HH-RLHF pairs and a deterministic 92-example RewardBench sample (four examples from each of 23 subsets). This is a CPU-feasible transfer diagnostic, **not** an official RewardBench leaderboard submission or a claim of statistical improvement.
 
+The Colab factorial pilot now contains a matched three-seed comparison of pairwise and pointwise LoRA objectives for `Qwen/Qwen2.5-3B-Instruct` on real UltraFeedback preference pairs at zero injected label noise. Each of the six runs uses 256 training pairs, 64 evaluation pairs, 10 optimizer steps, and eight deterministic generation prompts. The repository records raw run JSON, separate loss summaries, and paired pointwise-minus-pairwise contrasts. The pilot is explicitly non-inferential; its purpose is to validate the protocol and estimate compute before expanding across model size, dataset, and noise factors.
+
 ## Reproduce
 
 ```powershell

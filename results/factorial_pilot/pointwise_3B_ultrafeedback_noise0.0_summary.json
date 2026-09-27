@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "scope": "pilot_not_inferential",
+  "loss": "pointwise",
+  "model_id": "Qwen/Qwen2.5-3B-Instruct",
+  "dataset": "ultrafeedback",
+  "noise": 0.0,
+  "seeds": [11, 29, 47],
+  "n_seeds": 3,
+  "ddof": 1,
+  "metrics": {
+    "likelihood_ranking_accuracy": {"mean": 0.5677083333333334, "sd": 0.03252603124165832, "n": 3},
+    "brier": {"mean": 0.250152576419331, "sd": 0.0028822872201193245, "n": 3},
+    "ece_15": {"mean": 0.4996498048613875, "sd": 0.002493726647805115, "n": 3},
+    "c_mean": {"mean": -0.10433853266295046, "sd": 0.14280632898051565, "n": 3},
+    "c_abs_mean": {"mean": 0.19422651934049404, "sd": 0.08081644121298862, "n": 3},
+    "d_mean": {"mean": 0.009987027927612266, "sd": 0.10800544549171491, "n": 3},
+    "d_abs_mean": {"mean": 0.26582293899264187, "sd": 0.10304352731765848, "n": 3},
+    "kl_to_sft": {"mean": 0.023338303327033842, "sd": 0.007540068374518022, "n": 3},
+    "empirical_fisher_top_eigenvalue": {"mean": 0.14226261898875237, "sd": 0.2244358021259348, "n": 3},
+    "empirical_fisher_trace": {"mean": 0.14851326720478633, "sd": 0.23098889033546424, "n": 3},
+    "hessian_top_eigenvalue_power": {"mean": -110.42109998268899, "sd": 193.84643509713118, "n": 3},
+    "generation_win_rate_vs_sft": {"mean": 0.4166666666666667, "sd": 0.14433756729740643, "n": 3},
+    "mean_reward_delta": {"mean": 0.00090457359328866, "sd": 0.22220357670943106, "n": 3},
+    "policy_response_length_tokens": {"mean": 113.08333333333333, "sd": 20.43753185522492, "n": 3},
+    "sft_response_length_tokens": {"mean": 109.20833333333333, "sd": 14.266620424379887, "n": 3},
+    "train_seconds": {"mean": 196.8063377406667, "sd": 5.386035622477806, "n": 3},
+    "examples_per_second": {"mean": 0.20334551276611781, "sd": 0.005482479843975725, "n": 3},
+    "peak_gpu_memory_gb": {"mean": 3.94596004486084, "sd": 0.0, "n": 3}
+  }
+}
