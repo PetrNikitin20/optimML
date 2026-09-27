@@ -507,6 +507,7 @@ def save_training_checkpoint(
     examples: int,
     losses: list[float],
     elapsed_seconds: float,
+    peak_gpu_memory_gb: float,
 ) -> None:
     checkpoint_adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(checkpoint_adapter_dir)
@@ -515,6 +516,7 @@ def save_training_checkpoint(
         "examples_seen": examples,
         "losses": losses,
         "elapsed_seconds": elapsed_seconds,
+        "peak_gpu_memory_gb": peak_gpu_memory_gb,
         "optimizer": optimizer.state_dict(),
         "torch_rng_state": torch.get_rng_state(),
         "cuda_rng_state_all": torch.cuda.get_rng_state_all(),
@@ -547,18 +549,20 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
     optimizer = torch.optim.AdamW(trainable, lr=config.learning_rate)
     model.train()
     torch.cuda.reset_peak_memory_stats()
-    started = time.perf_counter()
     optimizer.zero_grad(set_to_none=True)
     steps = 0
     examples = 0
     losses = []
     prior_elapsed = 0.0
+    prior_peak_gpu_memory_gb = 0.0
     restored = restore_training_checkpoint(optimizer)
     if restored is not None:
         steps = int(restored["optimizer_steps"])
         examples = int(restored["examples_seen"])
         losses = list(restored["losses"])
         prior_elapsed = float(restored.get("elapsed_seconds", 0.0))
+        prior_peak_gpu_memory_gb = float(restored.get("peak_gpu_memory_gb", 0.0))
+    started = time.perf_counter()
     micro_steps = steps * config.grad_accum
     batches = deterministic_training_batches(config, micro_steps)
     while steps < config.max_steps:
@@ -582,7 +586,18 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
                 f"elapsed_min={elapsed / 60:.1f} eta_min={eta_seconds / 60:.1f}"
             )
         if steps % config.checkpoint_every == 0 or steps == config.max_steps:
-            save_training_checkpoint(optimizer, steps, examples, losses, elapsed)
+            peak_gpu_memory_gb = max(
+                prior_peak_gpu_memory_gb,
+                torch.cuda.max_memory_allocated() / 2**30,
+            )
+            save_training_checkpoint(
+                optimizer,
+                steps,
+                examples,
+                losses,
+                elapsed,
+                peak_gpu_memory_gb,
+            )
     elapsed = prior_elapsed + time.perf_counter() - started
     adapter_dir = ADAPTER_DIR / run_key
     adapter_dir.mkdir(parents=True, exist_ok=True)
@@ -594,7 +609,10 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
         "optimizer_steps": steps,
         "examples_seen": examples,
         "examples_per_second": examples / elapsed,
-        "peak_gpu_memory_gb": torch.cuda.max_memory_allocated() / 2**30,
+        "peak_gpu_memory_gb": max(
+            prior_peak_gpu_memory_gb,
+            torch.cuda.max_memory_allocated() / 2**30,
+        ),
         "trainable_parameters": int(sum(p.numel() for p in trainable)),
         "total_parameters": int(sum(p.numel() for p in model.parameters())),
         "adapter_path": str(adapter_dir),
