@@ -40,3 +40,9 @@ Before training, the notebook performs a nonzero finite-gradient preflight. Trai
 `results/factorial_smoke/000_pairwise_3B_ultrafeedback_noise0.0_seed11.json` is a real-data end-to-end validation run completed on a Tesla T4. It uses Qwen2.5-3B-Instruct, pairwise loss, UltraFeedback, zero injected label noise and seed 11. The run verifies dataset loading, QLoRA training, checkpoint resume, ranking and calibration metrics, KL, generation judging, finite-difference Hessian-vector products, empirical Fisher estimates and cost accounting.
 
 This artifact is deliberately labelled `smoke`: it has two optimizer steps, 16 evaluation pairs and two generation prompts. It is evidence that the pipeline executes and persists coherent measurements, not evidence for a comparison between losses, model sizes, datasets or noise levels. Inferential claims require the preregistered `full` results from all relevant seeds.
+
+## Verified pilot run
+
+`results/factorial_pilot/000_pairwise_3B_ultrafeedback_noise0.0_seed11.json` records the first measured pilot on a Tesla T4. It uses 256 training pairs, 64 evaluation pairs, ten optimizer steps and eight generation prompts. Training took 188.54 seconds at 0.212 examples per second and peaked at 3.94 GiB of GPU memory. The artifact is a throughput and instrumentation pilot, not one of the 288 inferential `full` cells.
+
+The pilot's finite-difference Hessian power estimate is much larger than the smoke estimate. It must be treated as a numerical diagnostic until replicated across seeds and checked for stability across finite-difference step sizes. No scientific claim should rely on this single curvature value.
