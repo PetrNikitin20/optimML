@@ -23,7 +23,7 @@ import random
 import subprocess
 import time
 from contextlib import nullcontext
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -33,6 +33,8 @@ import torch
 import torch.nn.functional as F
 from datasets import Dataset, DatasetDict, get_dataset_split_names, load_dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft.utils.save_and_load import set_peft_model_state_dict
+from safetensors.torch import load_file as load_safetensors
 from sklearn.metrics import brier_score_loss
 from torch.utils.data import DataLoader
 from transformers import (
@@ -77,6 +79,8 @@ class StudyConfig:
     curvature_batches: int = 6
     hessian_power_iterations: int = 5
     generation_prompts: int = 32
+    checkpoint_every: int = 25
+    log_every: int = 1
 
 
 # Exact requested size classes. The checkpoints are all from the Qwen family,
@@ -120,13 +124,58 @@ print(f"Manifest: {len(MANIFEST)} runs -> {manifest_path}")
 
 # %%
 RUN_INDEX = 0  # @param {type:"integer"}
-cfg = MANIFEST[RUN_INDEX]
+EXECUTION_PROFILE = "pilot"  # @param ["smoke", "pilot", "full"]
+
+
+def apply_execution_profile(config: StudyConfig, profile: str) -> StudyConfig:
+    if profile == "full":
+        return config
+    if profile == "pilot":
+        return replace(
+            config,
+            train_pairs=256,
+            eval_pairs=64,
+            max_length=192,
+            max_steps=10,
+            grad_accum=4,
+            curvature_batches=2,
+            hessian_power_iterations=2,
+            generation_prompts=8,
+            checkpoint_every=5,
+            log_every=1,
+        )
+    if profile == "smoke":
+        return replace(
+            config,
+            train_pairs=64,
+            eval_pairs=16,
+            max_length=128,
+            max_steps=2,
+            grad_accum=2,
+            curvature_batches=1,
+            hessian_power_iterations=1,
+            generation_prompts=2,
+            checkpoint_every=1,
+            log_every=1,
+        )
+    raise ValueError(f"Unknown EXECUTION_PROFILE={profile!r}")
+
+
+cfg = apply_execution_profile(MANIFEST[RUN_INDEX], EXECUTION_PROFILE)
 run_key = (
     f"{RUN_INDEX:03d}_{cfg.loss}_{cfg.model_label}_{cfg.dataset}_"
     f"noise{cfg.noise:.1f}_seed{cfg.seed}"
 )
-result_path = OUTPUT_ROOT / "runs" / f"{run_key}.json"
+RUN_DIR = OUTPUT_ROOT / "runs" / EXECUTION_PROFILE
+ADAPTER_DIR = OUTPUT_ROOT / "adapters" / EXECUTION_PROFILE
+CHECKPOINT_DIR = OUTPUT_ROOT / "checkpoints" / EXECUTION_PROFILE
+for directory in (RUN_DIR, ADAPTER_DIR, CHECKPOINT_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
+result_path = RUN_DIR / f"{run_key}.json"
+checkpoint_path = CHECKPOINT_DIR / f"{run_key}.pt"
+checkpoint_adapter_dir = CHECKPOINT_DIR / f"{run_key}_adapter"
 print(asdict(cfg))
+print("Execution profile:", EXECUTION_PROFILE)
 print("Result:", result_path)
 if result_path.exists():
     print("This run is already complete. Choose another RUN_INDEX.")
@@ -291,7 +340,18 @@ def load_policy(config: StudyConfig):
         low_cpu_mem_usage=True,
     )
     model.config.use_cache = False
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+    try:
+        model = prepare_model_for_kbit_training(
+            model,
+            use_gradient_checkpointing=True,
+            gradient_checkpointing_kwargs={"use_reentrant": False},
+        )
+    except TypeError:
+        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+        model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
+    model.enable_input_require_grads()
     lora = LoraConfig(
         r=config.lora_rank,
         lora_alpha=config.lora_alpha,
@@ -390,16 +450,99 @@ def preference_loss(batch: dict[str, torch.Tensor], kind: str) -> tuple[torch.Te
         "score_rejected": float(score_r.mean().detach()),
     }
 
+
+def validate_trainable_gradients() -> dict[str, float]:
+    """Fail fast before a long run if checkpointing detached the LoRA graph."""
+    model.train()
+    model.zero_grad(set_to_none=True)
+    loss, _ = preference_loss(collate_pairs([train_pairs[0]]), cfg.loss)
+    loss.backward()
+    grads = [p.grad.detach().float() for p in model.parameters() if p.requires_grad and p.grad is not None]
+    if not grads:
+        raise RuntimeError("No LoRA gradients were produced; refusing to start the run")
+    grad_norm = float(torch.sqrt(sum(g.square().sum() for g in grads)).cpu())
+    finite = bool(math.isfinite(grad_norm) and grad_norm > 0)
+    model.zero_grad(set_to_none=True)
+    if not finite:
+        raise RuntimeError(f"Invalid LoRA gradient norm: {grad_norm}")
+    check = {"loss": float(loss.detach().cpu()), "grad_norm": grad_norm}
+    print("Gradient preflight:", check)
+    return check
+
+
+GRADIENT_PREFLIGHT = validate_trainable_gradients()
+
 # %%
+def deterministic_training_batches(config: StudyConfig, start_micro_step: int):
+    """Yield a restart-stable stream; checkpoints occur only at optimizer boundaries."""
+    n = len(train_pairs)
+    micro_step = start_micro_step
+    cached_epoch = None
+    order: list[int] = []
+    while True:
+        rows = []
+        for batch_offset in range(config.batch_size):
+            sample_number = micro_step * config.batch_size + batch_offset
+            epoch, position = divmod(sample_number, n)
+            if epoch != cached_epoch:
+                order = list(range(n))
+                random.Random(config.seed + epoch).shuffle(order)
+                cached_epoch = epoch
+            rows.append(train_pairs[order[position]])
+        yield collate_pairs(rows)
+        micro_step += 1
+
+
+def move_optimizer_state_to_device(optimizer: torch.optim.Optimizer) -> None:
+    device = next(model.parameters()).device
+    for state in optimizer.state.values():
+        for key, value in state.items():
+            if torch.is_tensor(value):
+                state[key] = value.to(device)
+
+
+def save_training_checkpoint(
+    optimizer: torch.optim.Optimizer,
+    steps: int,
+    examples: int,
+    losses: list[float],
+    elapsed_seconds: float,
+) -> None:
+    checkpoint_adapter_dir.mkdir(parents=True, exist_ok=True)
+    model.save_pretrained(checkpoint_adapter_dir)
+    state = {
+        "optimizer_steps": steps,
+        "examples_seen": examples,
+        "losses": losses,
+        "elapsed_seconds": elapsed_seconds,
+        "optimizer": optimizer.state_dict(),
+        "torch_rng_state": torch.get_rng_state(),
+        "cuda_rng_state_all": torch.cuda.get_rng_state_all(),
+    }
+    temporary = checkpoint_path.with_suffix(".pt.tmp")
+    torch.save(state, temporary)
+    temporary.replace(checkpoint_path)
+    print(f"checkpoint step={steps} -> {checkpoint_path}")
+
+
+def restore_training_checkpoint(optimizer: torch.optim.Optimizer) -> dict[str, Any] | None:
+    adapter_file = checkpoint_adapter_dir / "adapter_model.safetensors"
+    if not (checkpoint_path.exists() and adapter_file.exists()):
+        return None
+    device = next(model.parameters()).device
+    adapter_state = load_safetensors(str(adapter_file), device=str(device))
+    set_peft_model_state_dict(model, adapter_state)
+    state = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    optimizer.load_state_dict(state["optimizer"])
+    move_optimizer_state_to_device(optimizer)
+    torch.set_rng_state(state["torch_rng_state"])
+    torch.cuda.set_rng_state_all(state["cuda_rng_state_all"])
+    print(f"Resumed from step={state['optimizer_steps']} at {checkpoint_path}")
+    return state
+
+
 def train_one(config: StudyConfig) -> dict[str, Any]:
     set_seed(config.seed)
-    loader = DataLoader(
-        train_pairs,
-        batch_size=config.batch_size,
-        shuffle=True,
-        collate_fn=collate_pairs,
-        generator=torch.Generator().manual_seed(config.seed),
-    )
     trainable = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(trainable, lr=config.learning_rate)
     model.train()
@@ -409,23 +552,39 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
     steps = 0
     examples = 0
     losses = []
+    prior_elapsed = 0.0
+    restored = restore_training_checkpoint(optimizer)
+    if restored is not None:
+        steps = int(restored["optimizer_steps"])
+        examples = int(restored["examples_seen"])
+        losses = list(restored["losses"])
+        prior_elapsed = float(restored.get("elapsed_seconds", 0.0))
+    micro_steps = steps * config.grad_accum
+    batches = deterministic_training_batches(config, micro_steps)
     while steps < config.max_steps:
-        for batch in loader:
-            loss, _ = preference_loss(batch, config.loss)
+        loss = None
+        for _ in range(config.grad_accum):
+            loss, _ = preference_loss(next(batches), config.loss)
             (loss / config.grad_accum).backward()
             examples += config.batch_size
-            if examples % config.grad_accum == 0:
-                torch.nn.utils.clip_grad_norm_(trainable, 1.0)
-                optimizer.step()
-                optimizer.zero_grad(set_to_none=True)
-                steps += 1
-                losses.append(float(loss.detach()))
-                if steps % 25 == 0:
-                    print(f"step={steps} loss={np.mean(losses[-25:]):.6f}")
-                if steps >= config.max_steps:
-                    break
-    elapsed = time.perf_counter() - started
-    adapter_dir = OUTPUT_ROOT / "adapters" / run_key
+        torch.nn.utils.clip_grad_norm_(trainable, 1.0)
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+        steps += 1
+        losses.append(float(loss.detach()))
+        elapsed = prior_elapsed + time.perf_counter() - started
+        seconds_per_step = elapsed / max(steps, 1)
+        eta_seconds = seconds_per_step * (config.max_steps - steps)
+        if steps % config.log_every == 0:
+            window = losses[-min(25, len(losses)) :]
+            print(
+                f"step={steps}/{config.max_steps} loss={np.mean(window):.6f} "
+                f"elapsed_min={elapsed / 60:.1f} eta_min={eta_seconds / 60:.1f}"
+            )
+        if steps % config.checkpoint_every == 0 or steps == config.max_steps:
+            save_training_checkpoint(optimizer, steps, examples, losses, elapsed)
+    elapsed = prior_elapsed + time.perf_counter() - started
+    adapter_dir = ADAPTER_DIR / run_key
     adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
@@ -439,6 +598,8 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
         "trainable_parameters": int(sum(p.numel() for p in trainable)),
         "total_parameters": int(sum(p.numel() for p in model.parameters())),
         "adapter_path": str(adapter_dir),
+        "checkpoint_path": str(checkpoint_path),
+        "execution_profile": EXECUTION_PROFILE,
     }
 
 
@@ -658,11 +819,13 @@ print(generation_metrics)
 # %%
 result = {
     "schema_version": 1,
+    "execution_profile": EXECUTION_PROFILE,
     "run_index": RUN_INDEX,
     "run_key": run_key,
     "config": asdict(cfg),
     "system": SYSTEM_INFO,
     "data_sha256": data_hash,
+    "gradient_preflight": GRADIENT_PREFLIGHT,
     "train": train_metrics,
     "evaluation": eval_metrics,
     "kl_to_sft": kl_metric,
@@ -695,7 +858,7 @@ def flatten_result(path: Path) -> dict[str, Any]:
 
 
 completed = pd.DataFrame(
-    [flatten_result(p) for p in sorted((OUTPUT_ROOT / "runs").glob("[0-9][0-9][0-9]_*.json"))]
+    [flatten_result(p) for p in sorted((OUTPUT_ROOT / "runs" / "full").glob("[0-9][0-9][0-9]_*.json"))]
 )
 aggregate_path = OUTPUT_ROOT / "factorial_results.csv"
 completed.to_csv(aggregate_path, index=False)

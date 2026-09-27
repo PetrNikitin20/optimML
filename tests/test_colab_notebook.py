@@ -46,6 +46,21 @@ class ColabNotebookTests(unittest.TestCase):
         ]:
             self.assertIn(metric, self.source)
 
+    def test_rational_execution_profiles_and_resume(self):
+        for token in [
+            'EXECUTION_PROFILE = "pilot"',
+            'if profile == "smoke"',
+            'if profile == "pilot"',
+            'if profile == "full"',
+            "validate_trainable_gradients",
+            "No LoRA gradients were produced",
+            "save_training_checkpoint",
+            "restore_training_checkpoint",
+            "eta_min=",
+            'OUTPUT_ROOT / "runs" / "full"',
+        ]:
+            self.assertIn(token, self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
