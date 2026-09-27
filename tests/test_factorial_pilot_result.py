@@ -14,7 +14,8 @@ SUMMARY = RESULT_DIR / "pairwise_3B_ultrafeedback_noise0.0_summary.json"
 class FactorialPilotResultTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.results = [json.loads(path.read_text(encoding="utf-8")) for path in RESULTS]
+        cls.all_results = [json.loads(path.read_text(encoding="utf-8")) for path in RESULTS]
+        cls.results = [item for item in cls.all_results if item["config"]["loss"] == "pairwise"]
         cls.summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
 
     def test_three_seed_series_identity(self):
@@ -31,8 +32,16 @@ class FactorialPilotResultTests(unittest.TestCase):
                 self.assertEqual(item["config"]["loss"], "pairwise")
                 self.assertEqual(item["config"]["noise"], 0.0)
 
+    def test_pointwise_seed_11_contrast_exists(self):
+        pointwise = [item for item in self.all_results if item["config"]["loss"] == "pointwise"]
+        self.assertEqual(len(pointwise), 1)
+        self.assertEqual(pointwise[0]["run_index"], 144)
+        self.assertEqual(pointwise[0]["config"]["seed"], 11)
+        pairwise_11 = next(item for item in self.results if item["config"]["seed"] == 11)
+        self.assertEqual(pointwise[0]["data_sha256"], pairwise_11["data_sha256"])
+
     def test_pilot_sample_and_step_accounting(self):
-        for item in self.results:
+        for item in self.all_results:
             with self.subTest(seed=item["config"]["seed"]):
                 self.assertEqual(item["config"]["train_pairs"], 256)
                 self.assertEqual(item["evaluation"]["n_eval_pairs"], 64)
@@ -41,7 +50,7 @@ class FactorialPilotResultTests(unittest.TestCase):
                 self.assertEqual(item["train"]["examples_seen"], 40)
 
     def test_all_reported_numeric_metrics_are_finite(self):
-        for item in self.results:
+        for item in self.all_results:
             groups = [
                 item["gradient_preflight"],
                 item["evaluation"],
@@ -56,7 +65,7 @@ class FactorialPilotResultTests(unittest.TestCase):
             self.assertTrue(math.isfinite(item["kl_to_sft"]))
 
     def test_cost_metrics_are_positive(self):
-        for item in self.results:
+        for item in self.all_results:
             for metric in ["train_seconds", "examples_per_second", "peak_gpu_memory_gb"]:
                 with self.subTest(seed=item["config"]["seed"], metric=metric):
                     self.assertGreater(item["train"][metric], 0)
