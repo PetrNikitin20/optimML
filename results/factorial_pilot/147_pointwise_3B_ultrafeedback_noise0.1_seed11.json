@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "execution_profile": "pilot",
+  "run_index": 147,
+  "run_key": "147_pointwise_3B_ultrafeedback_noise0.1_seed11",
+  "config": {
+    "loss": "pointwise",
+    "model_label": "3B",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "ultrafeedback",
+    "noise": 0.1,
+    "seed": 11,
+    "train_pairs": 256,
+    "eval_pairs": 64,
+    "max_length": 192,
+    "max_steps": 10,
+    "batch_size": 1,
+    "grad_accum": 4,
+    "learning_rate": 0.0002,
+    "beta": 0.1,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "curvature_batches": 2,
+    "hessian_power_iterations": 2,
+    "generation_prompts": 8,
+    "checkpoint_every": 5,
+    "log_every": 1
+  },
+  "system": {
+    "gpu": "Tesla T4",
+    "gpu_memory_gb": 14.563,
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "python": "3.13.15"
+  },
+  "data_sha256": "ca79b13873c57441128f3bf4fa1fa652d57db1f035cc2c9d2a4d4f4ef334ed7a",
+  "gradient_preflight": {
+    "loss": 0.6931471824645996,
+    "grad_norm": 0.11576281487941742
+  },
+  "train": {
+    "train_loss_last_25": 0.6889714300632477,
+    "train_seconds": 195.71224745000018,
+    "optimizer_steps": 10,
+    "examples_seen": 40,
+    "examples_per_second": 0.20438169057467417,
+    "peak_gpu_memory_gb": 3.93961238861084,
+    "trainable_parameters": 29933568,
+    "total_parameters": 1728606208,
+    "adapter_path": "optimML_factorial/adapters/pilot/147_pointwise_3B_ultrafeedback_noise0.1_seed11",
+    "checkpoint_path": "optimML_factorial/checkpoints/pilot/147_pointwise_3B_ultrafeedback_noise0.1_seed11.pt",
+    "execution_profile": "pilot"
+  },
+  "evaluation": {
+    "likelihood_ranking_accuracy": 0.609375,
+    "brier": 0.2546945303715927,
+    "ece_15": 0.5020327837506526,
+    "c_mean": -0.49136621691286564,
+    "c_abs_mean": 0.5321607179939747,
+    "c_sd": 1.3976795144793195,
+    "d_mean": -0.13918570149689913,
+    "d_abs_mean": 0.7104680212214589,
+    "d_sd": 2.5262782380433695,
+    "n_eval_pairs": 64
+  },
+  "kl_to_sft": 0.05512956955590214,
+  "curvature": {
+    "empirical_fisher_top_eigenvalue": 0.22834151983261108,
+    "empirical_fisher_trace": 0.24015846848487854,
+    "hessian_top_eigenvalue_power": 241.51176397822618,
+    "hessian_hvp_method": "central_finite_difference",
+    "hessian_hvp_epsilon": 0.001,
+    "curvature_batches": 2
+  },
+  "generation": {
+    "judge_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+    "generation_win_rate_vs_sft": 0.625,
+    "generation_tie_rate": 0.0,
+    "mean_reward_delta": 0.049737948924303055,
+    "policy_response_length_tokens": 128.0,
+    "sft_response_length_tokens": 97.25,
+    "n_generation_prompts": 8
+  },
+  "row_metrics_path": "optimML_factorial/runs/pilot/147_pointwise_3B_ultrafeedback_noise0.1_seed11_rows.parquet",
+  "completed_utc": "2026-09-28T20:12:52.898911+00:00"
+}

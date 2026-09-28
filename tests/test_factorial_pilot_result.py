@@ -62,6 +62,19 @@ class FactorialPilotResultTests(unittest.TestCase):
             self.assertEqual(item["config"]["loss"], "pairwise")
             self.assertEqual(item["config"]["noise"], 0.1)
 
+    def test_completed_noisy_pointwise_runs_match_pairwise_data(self):
+        pointwise_noise = [item for item in self.pointwise_all if item["config"]["noise"] == 0.1]
+        self.assertEqual({item["run_index"] for item in pointwise_noise}, {147})
+        pairwise_by_seed = {
+            item["config"]["seed"]: item
+            for item in self.pairwise
+            if item["config"]["noise"] == 0.1
+        }
+        for item in pointwise_noise:
+            seed = item["config"]["seed"]
+            with self.subTest(seed=seed):
+                self.assertEqual(item["data_sha256"], pairwise_by_seed[seed]["data_sha256"])
+
     def test_noise_point_one_summary_is_recomputable(self):
         noise_results = [item for item in self.pairwise if item["config"]["noise"] == 0.1]
         values = [item["evaluation"]["likelihood_ranking_accuracy"] for item in noise_results]
