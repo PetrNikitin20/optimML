@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scope": "pilot_not_inferential",
+  "configuration": {
+    "loss": "pairwise",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "ultrafeedback",
+    "noise": 0.1,
+    "execution_profile": "pilot"
+  },
+  "seeds": [11, 29, 47],
+  "n_seeds": 3,
+  "aggregation": "arithmetic mean and sample standard deviation across seeds",
+  "ddof": 1,
+  "metrics": {
+    "likelihood_ranking_accuracy": {"mean": 0.5833333333333334, "sd": 0.03608439182435161, "n": 3},
+    "brier": {"mean": 0.24957337755300316, "sd": 0.004268197669751225, "n": 3},
+    "ece_15": {"mean": 0.4984587675662754, "sd": 0.0033635199495045823, "n": 3},
+    "c_mean": {"mean": -0.30200450679209706, "sd": 0.24804471406577827, "n": 3},
+    "d_mean": {"mean": 0.04214642511215061, "sd": 0.16427187766158247, "n": 3},
+    "kl_to_sft": {"mean": 0.041956480452652566, "sd": 0.020327970659613347, "n": 3},
+    "generation_win_rate_vs_sft": {"mean": 0.4166666666666667, "sd": 0.4018187817080398, "n": 3},
+    "mean_reward_delta": {"mean": -0.11045207952459653, "sd": 0.6608586662886176, "n": 3},
+    "policy_response_length_tokens": {"mean": 114.54166666666667, "sd": 23.31051711853114, "n": 3},
+    "sft_response_length_tokens": {"mean": 109.20833333333333, "sd": 14.266620424379887, "n": 3},
+    "empirical_fisher_top_eigenvalue": {"mean": 0.6059989929199219, "sd": 0.95258856228685, "n": 3},
+    "empirical_fisher_trace": {"mean": 0.6438489016145468, "sd": 0.9925563447579157, "n": 3},
+    "hessian_top_eigenvalue_power": {"mean": 954.0792738769719, "sd": 1648.0647598895403, "n": 3},
+    "train_seconds": {"mean": 187.76231623000027, "sd": 12.585908743221562, "n": 3},
+    "examples_per_second": {"mean": 0.21365738441670173, "sd": 0.013925634545170247, "n": 3},
+    "peak_gpu_memory_gb": {"mean": 3.94596004486084, "sd": 0.0, "n": 3}
+  },
+  "warnings": [
+    "This series estimates repeatability for one configuration only and is not an inferential factorial result.",
+    "Generation metrics use eight prompts per seed and therefore have high sampling uncertainty.",
+    "The Hessian estimate is numerically unstable across seeds and must not support a scientific claim without epsilon and iteration sensitivity analysis."
+  ]
+}

@@ -11,6 +11,7 @@ RESULTS = sorted(RESULT_DIR.glob("[0-9][0-9][0-9]_*.json"))
 SUMMARY = RESULT_DIR / "pairwise_3B_ultrafeedback_noise0.0_summary.json"
 POINTWISE_SUMMARY = RESULT_DIR / "pointwise_3B_ultrafeedback_noise0.0_summary.json"
 PAIRED_SUMMARY = RESULT_DIR / "paired_loss_contrast_3B_ultrafeedback_noise0.0_summary.json"
+NOISE_SUMMARY = RESULT_DIR / "pairwise_3B_ultrafeedback_noise0.1_summary.json"
 
 
 class FactorialPilotResultTests(unittest.TestCase):
@@ -24,6 +25,7 @@ class FactorialPilotResultTests(unittest.TestCase):
         cls.pointwise = [item for item in cls.pointwise_all if item["config"]["noise"] == 0.0]
         cls.pointwise_summary = json.loads(POINTWISE_SUMMARY.read_text(encoding="utf-8"))
         cls.paired_summary = json.loads(PAIRED_SUMMARY.read_text(encoding="utf-8"))
+        cls.noise_summary = json.loads(NOISE_SUMMARY.read_text(encoding="utf-8"))
 
     def test_three_seed_series_identity(self):
         self.assertEqual(len(self.results), 3)
@@ -52,13 +54,22 @@ class FactorialPilotResultTests(unittest.TestCase):
 
     def test_noise_point_one_series_grows_in_manifest_order(self):
         noise_results = [item for item in self.pairwise if item["config"]["noise"] == 0.1]
-        self.assertEqual({item["run_index"] for item in noise_results}, {3, 4})
-        self.assertEqual({item["config"]["seed"] for item in noise_results}, {11, 29})
+        self.assertEqual({item["run_index"] for item in noise_results}, {3, 4, 5})
+        self.assertEqual({item["config"]["seed"] for item in noise_results}, {11, 29, 47})
         for item in noise_results:
             self.assertEqual(item["config"]["dataset"], "ultrafeedback")
             self.assertEqual(item["config"]["model_label"], "3B")
             self.assertEqual(item["config"]["loss"], "pairwise")
             self.assertEqual(item["config"]["noise"], 0.1)
+
+    def test_noise_point_one_summary_is_recomputable(self):
+        noise_results = [item for item in self.pairwise if item["config"]["noise"] == 0.1]
+        values = [item["evaluation"]["likelihood_ranking_accuracy"] for item in noise_results]
+        metric = self.noise_summary["metrics"]["likelihood_ranking_accuracy"]
+        self.assertEqual(self.noise_summary["scope"], "pilot_not_inferential")
+        self.assertEqual(self.noise_summary["configuration"]["noise"], 0.1)
+        self.assertAlmostEqual(metric["mean"], statistics.mean(values))
+        self.assertAlmostEqual(metric["sd"], statistics.stdev(values))
 
     def test_pilot_sample_and_step_accounting(self):
         for item in self.all_results:
