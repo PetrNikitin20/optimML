@@ -64,7 +64,7 @@ class FactorialPilotResultTests(unittest.TestCase):
 
     def test_completed_noisy_pointwise_runs_match_pairwise_data(self):
         pointwise_noise = [item for item in self.pointwise_all if item["config"]["noise"] == 0.1]
-        self.assertEqual({item["run_index"] for item in pointwise_noise}, {147})
+        self.assertEqual({item["run_index"] for item in pointwise_noise}, {147, 148})
         pairwise_by_seed = {
             item["config"]["seed"]: item
             for item in self.pairwise
