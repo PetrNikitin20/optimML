@@ -17,6 +17,8 @@ The external pilot adds `TinyLlama/TinyLlama-1.1B-Chat-v1.0` with a scalar seque
 
 The Colab factorial pilot now contains matched three-seed comparisons of pairwise and pointwise LoRA objectives for `Qwen/Qwen2.5-3B-Instruct` on real UltraFeedback preference pairs at both zero and 0.1 injected label noise. The 0.1-noise pointwise series is complete at indices 147-149 (seeds 11, 29, and 47), with data hashes matched to pairwise indices 3-5 within seed. Each run uses 256 training pairs, 64 evaluation pairs, 10 optimizer steps, and eight deterministic generation prompts. The repository records raw run JSON, separate summaries, and paired pointwise-minus-pairwise contrasts. The pilot is explicitly non-inferential; its purpose is to validate the protocol and estimate compute before expanding across model size, dataset, and noise factors.
 
+The Russian Word manuscript for the journal *Programmnye produkty i sistemy* is available at `article/SWSYS_RU_pairwise_pointwise_real_data.docx`. It reports only the 12 completed real-data pilot runs and explicitly separates those descriptive results from the registered 288-run factorial design. Rebuild it from the checked JSON artifacts with `python tools/build_swsys_article.py`.
+
 ## Reproduce
 
 ```powershell
