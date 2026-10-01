@@ -1,0 +1,62 @@
+{
+  "scope": "last_MLP_down_projection_LoRA_B_only_not_full_model_Hessian",
+  "parameter_name": "base_model.model.model.layers.35.mlp.down_proj.lora_B.default.weight",
+  "n_parameters": 32768,
+  "method": "exact_autograd_double_backward_math_SDPA",
+  "interpretation": "dominant_magnitude_Rayleigh_quotient_not_largest_algebraic_eigenvalue",
+  "dropout_disabled": true,
+  "weights_modified": false,
+  "repeat_hvp_relative_difference": 0.0,
+  "symmetry_absolute_error": 8.412825991399586e-12,
+  "symmetry_relative_error": 2.2269684905040776e-06,
+  "seed": 3000050,
+  "iterations": 8,
+  "history": [
+    {
+      "iteration": 1,
+      "rayleigh": -4.93684274260886e-06,
+      "relative_residual": 0.9999525547027588
+    },
+    {
+      "iteration": 2,
+      "rayleigh": -0.03414185717701912,
+      "relative_residual": 0.47170212864875793
+    },
+    {
+      "iteration": 3,
+      "rayleigh": -0.04530218988656998,
+      "relative_residual": 0.1431483030319214
+    },
+    {
+      "iteration": 4,
+      "rayleigh": -0.04650641977787018,
+      "relative_residual": 0.050160545855760574
+    },
+    {
+      "iteration": 5,
+      "rayleigh": -0.0466659814119339,
+      "relative_residual": 0.019833587110042572
+    },
+    {
+      "iteration": 6,
+      "rayleigh": -0.04669202119112015,
+      "relative_residual": 0.008621995337307453
+    },
+    {
+      "iteration": 7,
+      "rayleigh": -0.046697117388248444,
+      "relative_residual": 0.00412247097119689
+    },
+    {
+      "iteration": 8,
+      "rayleigh": -0.04669833183288574,
+      "relative_residual": 0.0021847228053957224
+    }
+  ],
+  "rayleigh": -0.04669833183288574,
+  "relative_residual": 0.0021847228053957224,
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "source_revision": "75fe61d",
+  "source_sha256": "3e7b5461b6b343545b7f6ab0dcaa653947e27c4e846a7c83177d80c9b9fe009e",
+  "n_eval_pairs_used": 1
+}

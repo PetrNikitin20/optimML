@@ -1,0 +1,12 @@
+{
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "storage": "Persistent local user workspace backup, independent of the temporary Colab runtime",
+  "metrics_archive": {"filename": "protocol_v2_seed47_metrics.zip", "bytes": 219125, "sha256": "dbc5be83deccc5a517ece0914c60a707be9889d1e0530c510b3b06b91f7a03a5"},
+  "adapter_archive": {"filename": "protocol_v2_seed47_adapter.zip", "bytes": 112667373, "sha256": "b8ce46f35f163e3fde32fb9707d74d609bbf97168ca6cfde827756f6a229a5af"},
+  "diagnostics_archive": {"filename": "protocol_v2_seed47_diagnostics.zip", "bytes": 2214, "sha256": "1d9295962758fb47511d9b8c1a14349bdffa3f3a0326ea734c091e5d47ccd06e"},
+  "adapter_weights": {"filename": "adapter_model.safetensors", "bytes": 119801528, "sha256": "569a360bd430a5da9daee8ba95e14248ced8315af8e7136078e301b5d7811212"},
+  "binary_adapter_in_git": false,
+  "raw_text_in_git": false,
+  "optimizer_checkpoint_backed_up": false,
+  "note": "Completed-run adapter, tokenizer, raw pairs, predictions and generations are backed up. The completed run can be reevaluated; its optimizer checkpoint remains only in Colab. Published numeric records are separate from raw-text backups."
+}

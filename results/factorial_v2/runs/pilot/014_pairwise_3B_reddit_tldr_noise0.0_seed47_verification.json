@@ -1,0 +1,34 @@
+{
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "status": "verified_against_raw_records",
+  "recomputed_evaluation": {
+    "likelihood_ranking_accuracy": 0.640625,
+    "reference_ratio_ranking_accuracy": 0.453125,
+    "sft_likelihood_ranking_accuracy": 0.640625,
+    "brier": 0.2545831938439,
+    "ece_15": 0.03224266622529457,
+    "c_mean": 0.6988731408491731,
+    "c_abs_mean": 0.7215358065441251,
+    "c_sd": 0.5917526500689801,
+    "d_mean": -0.16962864063680172,
+    "d_abs_mean": 0.5850695800036192,
+    "d_sd": 0.7330505837148917,
+    "n_eval_pairs": 64
+  },
+  "limits": "KL and curvature are recorded measurements, not independently recomputed by this verifier; pilot is not inferential evidence.",
+  "raw_data_hash_verified": true,
+  "train_holdout_prompt_disjoint_verified": true,
+  "response_lengths_verified": true,
+  "raw_text_distribution": "kept_in_local_backup_not_redistributed_in_git",
+  "scope": "single_seed_pilot_not_inferential",
+  "public_artifact_sha256": {
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47.json": "410caa98d5c166a38f426f4fea5ce8b01a3b2d0391406d110bd18d17a13028af",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_rows.csv": "2e788b010c177a85b3c3db520ea93b9d9133d92b85ccd7f5a8c12a3ae7a4b278",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_rows.parquet": "323faaf3965d6f142ca5586fb87b94556ec75b16448c4064201c7c359da5d798",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_generation_lengths.json": "848f0706acd2b752efbbc6d15aba4c7cd946f874da62f2e70015675ced58c40b",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_hvp_sensitivity.json": "61356df06e857551f329bc4dae240cc18345b9c9e8f485171b5fb4974da4c507",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_calibration_diagnostics.json": "9b0752cf682991c2f0b80133ce6a2cafed46a50a1a5f5fad46974298fa6618e0",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_projected_hessian_exact.json": "d11c4c0bc66f426ed4f93ff93d39915ed91bc8d5a482539e46fa3b6b9859056f",
+    "014_pairwise_3B_reddit_tldr_noise0.0_seed47_judge_scores.json": "95e6f5e9a2ff4d1cfb25d798e4e6d13b3a58f19f4ce7f3d6086e898c2ac49a00"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "binary_probability_ece_15": 0.03224266622529457,
+  "confidence_ece_15": 0.06148758997882755,
+  "scope": "supplemental_calibration_diagnostic"
+}

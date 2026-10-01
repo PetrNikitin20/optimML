@@ -1,0 +1,58 @@
+[
+  {
+    "prompt_index": 0,
+    "policy_reward": -6.056636810302734,
+    "reference_reward": -3.513761520385742,
+    "policy_tokens": 128,
+    "reference_tokens": 128
+  },
+  {
+    "prompt_index": 1,
+    "policy_reward": -0.8395401239395142,
+    "reference_reward": -2.830343246459961,
+    "policy_tokens": 128,
+    "reference_tokens": 31
+  },
+  {
+    "prompt_index": 2,
+    "policy_reward": -2.0614521503448486,
+    "reference_reward": -4.697786331176758,
+    "policy_tokens": 53,
+    "reference_tokens": 84
+  },
+  {
+    "prompt_index": 3,
+    "policy_reward": -0.2599527835845947,
+    "reference_reward": -1.6503243446350098,
+    "policy_tokens": 87,
+    "reference_tokens": 94
+  },
+  {
+    "prompt_index": 4,
+    "policy_reward": -2.6057357788085938,
+    "reference_reward": -3.313340425491333,
+    "policy_tokens": 128,
+    "reference_tokens": 63
+  },
+  {
+    "prompt_index": 5,
+    "policy_reward": -2.136594295501709,
+    "reference_reward": -2.841684341430664,
+    "policy_tokens": 128,
+    "reference_tokens": 104
+  },
+  {
+    "prompt_index": 6,
+    "policy_reward": -0.06522412598133087,
+    "reference_reward": -0.24246694147586823,
+    "policy_tokens": 31,
+    "reference_tokens": 89
+  },
+  {
+    "prompt_index": 7,
+    "policy_reward": -2.4903478622436523,
+    "reference_reward": -1.7631686925888062,
+    "policy_tokens": 128,
+    "reference_tokens": 71
+  }
+]

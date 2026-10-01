@@ -1,0 +1,32 @@
+{
+  "scope": "numerical_diagnostic_not_eigenvalue_validation",
+  "seed": 2000050,
+  "dropout_disabled": true,
+  "weights_exactly_restored": true,
+  "repeat_gradient_relative_difference": 0.0,
+  "probes": [
+    {
+      "epsilon": 0.001,
+      "rayleigh_fixed_direction": 0.004589216783642769,
+      "hvp_norm": 44.45459747314453
+    },
+    {
+      "epsilon": 0.003,
+      "rayleigh_fixed_direction": 0.0017732323613017797,
+      "hvp_norm": 10.988801956176758,
+      "relative_difference_vs_previous_epsilon": 0.9883227348327637,
+      "cosine_vs_previous_epsilon": 0.17179982364177704
+    },
+    {
+      "epsilon": 0.01,
+      "rayleigh_fixed_direction": -0.00021981215104460716,
+      "hvp_norm": 3.301154851913452,
+      "relative_difference_vs_previous_epsilon": 1.0439273118972778,
+      "cosine_vs_previous_epsilon": 0.0004886899841949344
+    }
+  ],
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "source_revision": "781e930",
+  "source_sha256": "cb694cc406e060144bc7e8f93c3a6187c5befc40d6364b728f53030c32dba725",
+  "epsilon_consistency_pass": false
+}

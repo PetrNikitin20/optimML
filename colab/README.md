@@ -8,6 +8,15 @@ judging. Local output remains ephemeral and must be exported before disconnectin
 `OPTIMML_LOCAL_OUTPUT=1` bypasses Drive mounting; `OPTIMML_RUN_INDEX` selects a run
 for scripted execution. Existing complete v2 files cause a hard stop, not overwrite.
 
+The first complete, raw-record-verified v2 pilot is run 14 (Reddit TL;DR, seed 47).
+See [its measurements and limitations](../results/factorial_v2/README.md).
+The measured core package versions are in `requirements-v2-measured.txt` and
+the updated installation cell. The notebook additionally records Torch/CUDA
+and supporting package versions; the installer is not a complete system lock. Do not pool runs
+with changed library versions without a reproducibility/sensitivity check.
+Finite-difference full-space Hessian probes failed epsilon consistency; use the
+separate restricted-subspace autograd diagnostic only with its explicit scope.
+
 `factorial_preference_study.ipynb` runs one cell of the real-data factorial design per Colab session and writes immutable JSON results to `MyDrive/optimML_factorial`.
 
 The notebook defaults to the `pilot` profile so an accidental click does not launch a multi-hour full run. Three profiles are available:

@@ -1,0 +1,120 @@
+{
+  "schema_version": 2,
+  "protocol_version": "v2",
+  "run_index": 14,
+  "run_key": "014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+  "execution_profile": "pilot",
+  "config": {
+    "loss": "pairwise",
+    "model_label": "3B",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "reddit_tldr",
+    "noise": 0.0,
+    "seed": 47,
+    "train_pairs": 256,
+    "eval_pairs": 64,
+    "max_length": 192,
+    "max_steps": 10,
+    "batch_size": 1,
+    "grad_accum": 4,
+    "learning_rate": 0.0002,
+    "beta": 0.1,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "curvature_batches": 2,
+    "hessian_power_iterations": 2,
+    "generation_prompts": 8,
+    "checkpoint_every": 5,
+    "log_every": 1
+  },
+  "source_revision": "1037290",
+  "source_sha256": "9c33d94cdfd889fc6300f658f8edb50107bf95973a367b657b7f10ec8d7b1a72",
+  "system": {
+    "gpu": "Tesla T4",
+    "gpu_memory_gb": 14.563,
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "python": "3.13.15",
+    "packages": {
+      "transformers": "5.16.1",
+      "datasets": "4.8.5",
+      "peft": "0.20.0",
+      "accelerate": "1.14.0",
+      "bitsandbytes": "0.50.2",
+      "numpy": "2.1.3",
+      "pandas": "2.2.3"
+    }
+  },
+  "stage": "complete",
+  "status": "complete",
+  "updated_utc": "2026-10-01T11:08:02.988306+00:00",
+  "dataset_revision": "a4d82a1068e43c8edee69c452a7e763722bd5496",
+  "dataset_fingerprint": "80523030bf2f2242",
+  "data_sha256": "064a5686e3c77968113f3bfb5e3e1fe182b98fd31d7fe6ec5085c8b85f4ffed8",
+  "data_protocol": {
+    "split_seed": 20261001,
+    "prompt_disjoint": true,
+    "one_pair_per_prompt": true,
+    "evaluation_fixed_across_training_seeds": true
+  },
+  "gradient_preflight": {
+    "loss": 0.6931471824645996,
+    "grad_norm": 0.9230997562408447
+  },
+  "model_revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+  "train": {
+    "train_loss_last_25": 0.6786118149757385,
+    "train_seconds": 200.73396750100005,
+    "optimizer_steps": 10,
+    "examples_seen": 40,
+    "examples_per_second": 0.19926871619174627,
+    "peak_gpu_memory_gb": 3.9495673179626465,
+    "trainable_parameters": 29933568,
+    "total_parameters": 3115872256,
+    "adapter_path": "optimML_factorial/protocol_v2/adapters/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47",
+    "checkpoint_path": "optimML_factorial/protocol_v2/checkpoints/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47.pt",
+    "execution_profile": "pilot"
+  },
+  "evaluation": {
+    "likelihood_ranking_accuracy": 0.640625,
+    "reference_ratio_ranking_accuracy": 0.453125,
+    "sft_likelihood_ranking_accuracy": 0.640625,
+    "brier": 0.25458319384389994,
+    "ece_15": 0.03224266622529457,
+    "c_mean": 0.6988731408491731,
+    "c_abs_mean": 0.7215358065441251,
+    "c_sd": 0.5917526500689803,
+    "d_mean": -0.16962864063680172,
+    "d_abs_mean": 0.5850695800036192,
+    "d_sd": 0.7330505837148916,
+    "n_eval_pairs": 64
+  },
+  "curvature": {
+    "empirical_fisher_top_eigenvalue": 0.9128481149673462,
+    "empirical_fisher_trace": 1.0820716619491577,
+    "fisher_definition": "conditional_Bernoulli_preference_Fisher_p(1-p)_grad_logit_outer_product",
+    "hessian_top_eigenvalue_power": -38.455658443193045,
+    "hessian_estimate_interpretation": "dominant_magnitude_Rayleigh_quotient; diagnostic_not_largest_algebraic_eigenvalue",
+    "hessian_hvp_method": "central_finite_difference",
+    "hessian_hvp_epsilon": 0.001,
+    "curvature_batches": 2
+  },
+  "kl_to_sft": 1.3437192715971569,
+  "generation": {
+    "judge_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+    "generation_win_rate_vs_sft": 0.75,
+    "generation_tie_rate": 0.0,
+    "mean_reward_delta": 0.5421739891171455,
+    "policy_response_length_tokens": 101.375,
+    "sft_response_length_tokens": 83.0,
+    "n_generation_prompts": 8
+  },
+  "artifact_sha256": {
+    "optimML_factorial/protocol_v2/runs/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47_rows.parquet": "323faaf3965d6f142ca5586fb87b94556ec75b16448c4064201c7c359da5d798",
+    "optimML_factorial/protocol_v2/runs/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47_generations.json": "d2224c17830a8c7aea2d3815decf6e7ab47d27126910ee4e29deefc417384a10",
+    "optimML_factorial/protocol_v2/runs/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47_pairs.json": "fe2a97dffd1dfa35f634e24670604d08bceb49aff667a064a3617b69678b4fac"
+  },
+  "row_metrics_path": "optimML_factorial/protocol_v2/runs/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47_rows.parquet",
+  "completed_utc": "2026-10-01T11:08:03.011732+00:00"
+}

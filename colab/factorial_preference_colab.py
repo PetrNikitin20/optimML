@@ -8,7 +8,7 @@
 # to each Colab session.
 
 # %%
-!pip -q install "transformers>=4.48,<5" "datasets>=3.2,<4" "peft>=0.14,<1" "accelerate>=1.2,<2" "bitsandbytes>=0.45,<1" "scikit-learn>=1.5,<2" "pynvml>=12,<13" "pandas>=2.2,<3" "pyarrow>=18,<20"
+!pip -q install "transformers==5.16.1" "datasets==4.8.5" "peft==0.20.0" "accelerate==1.14.0" "bitsandbytes==0.50.2" "numpy==2.1.3" "pandas==2.2.3" "scikit-learn>=1.5,<2" "pyarrow>=18,<25"
 
 # %%
 from __future__ import annotations
@@ -207,7 +207,7 @@ def save_stage(stage: str, **values: Any) -> None:
 
 def finish_run() -> dict[str, Any]:
     artifacts = {}
-    for path in (row_path, generation_path, pair_path):
+    for path in (row_path, row_path.with_suffix(".csv"), generation_path, pair_path, length_path):
         artifacts[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
     result = {**progress, "status": "complete", "stage": "complete",
               "artifact_sha256": artifacts, "row_metrics_path": str(row_path),
@@ -232,7 +232,7 @@ def require_gpu() -> dict[str, Any]:
         "cuda": torch.version.cuda,
         "python": platform.python_version(),
         "packages": {name: importlib.metadata.version(name) for name in
-                     ("transformers", "datasets", "peft", "accelerate", "bitsandbytes", "numpy", "pandas")},
+                     ("transformers", "datasets", "peft", "accelerate", "bitsandbytes", "numpy", "pandas", "pyarrow", "scikit-learn")},
     }
     print(info)
     return info
@@ -759,6 +759,7 @@ def evaluate_pairs(rows: list[dict[str, str]]) -> tuple[dict[str, float], pd.Dat
 eval_metrics, row_metrics = evaluate_pairs(eval_pairs)
 row_path = RUN_DIR / f"{run_key}_rows.parquet"
 row_metrics.to_parquet(row_path, index=False)
+row_metrics.to_csv(row_path.with_suffix(".csv"), index=False)
 print(eval_metrics)
 save_stage("evaluated", evaluation=eval_metrics)
 
@@ -854,6 +855,8 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
         "empirical_fisher_trace": fisher_trace,
         "fisher_definition": "conditional_Bernoulli_preference_Fisher_p(1-p)_grad_logit_outer_product",
         "hessian_top_eigenvalue_power": eigenvalue,
+        "hessian_validated": False,
+        "hessian_validation_note": "Full-space finite differences failed pilot epsilon consistency; raw diagnostic only. Run separate restricted-subspace autograd checks.",
         "hessian_estimate_interpretation": "dominant_magnitude_Rayleigh_quotient; diagnostic_not_largest_algebraic_eigenvalue",
         "hessian_hvp_method": "central_finite_difference",
         "hessian_hvp_epsilon": epsilon,
@@ -960,7 +963,11 @@ generation_metrics.update(
 )
 print(generation_metrics)
 generation_path = RUN_DIR / f"{run_key}_generations.json"
+for record, policy_tokens, reference_tokens in zip(judge_records, policy_lengths, sft_lengths):
+    record.update(policy_tokens=policy_tokens, reference_tokens=reference_tokens)
 generation_path.write_text(json.dumps(judge_records, ensure_ascii=False, indent=2), encoding="utf-8")
+length_path = RUN_DIR / f"{run_key}_generation_lengths.json"
+length_path.write_text(json.dumps({"policy": policy_lengths, "sft": sft_lengths}), encoding="utf-8")
 save_stage("generation_evaluated", generation=generation_metrics)
 # Save immediately, not only in a manually executed subsequent notebook cell.
 result = finish_run()
