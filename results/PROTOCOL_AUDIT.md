@@ -16,6 +16,9 @@ Corrections in protocol v2:
   Sequence log probabilities remain length-normalized; this is not standard
   summed-log-probability DPO and must be stated explicitly in the paper.
 - Binary probability ECE uses balanced deterministic response orientations.
+  Coarse probability bins near 0.5 may mask miscalibration through cancellation;
+  also inspect confidence-based ECE and reliability curves. Low binary ECE alone
+  is not evidence that preference predictions are well calibrated.
 - Curvature probes disable dropout and restore parameters by exact copy.
   Fisher is the conditional Bernoulli preference Fisher, not objective-gradient
   outer products. Hessian power iteration estimates the dominant-magnitude
