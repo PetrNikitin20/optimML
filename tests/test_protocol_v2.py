@@ -13,9 +13,10 @@ SOURCE = (ROOT / "colab/factorial_preference_colab.py").read_text(encoding="utf-
 
 def isolated_functions():
     tree = ast.parse("\n".join(line for line in SOURCE.splitlines() if not line.startswith("!")))
-    names = {"messages_to_text", "prepare_pairs"}
+    names = {"messages_to_text", "prepare_pairs", "completed_result_paths", "calibration_error"}
     module = ast.Module(body=[node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names], type_ignores=[])
-    scope = {"Any": Any, "StudyConfig": SimpleNamespace, "random": random, "hashlib": hashlib, "json": json}
+    import numpy as np
+    scope = {"Any": Any, "StudyConfig": SimpleNamespace, "random": random, "hashlib": hashlib, "json": json, "Path": Path, "np": np}
     exec(compile(module, "notebook_functions", "exec"), scope)
     return scope
 
@@ -58,6 +59,35 @@ class ProtocolV2Tests(unittest.TestCase):
         self.assertIn('overwriting is disabled', SOURCE)
         self.assertIn('oriented_prob', SOURCE)
         self.assertIn('reference_ratio_ranking_accuracy', SOURCE)
+        self.assertIn('Checkpoint protocol/config/data mismatch', SOURCE)
+
+    def test_completed_aggregation_excludes_auxiliary_files(self):
+        class FakeDirectory:
+            def glob(self, pattern):
+                return paths
+
+        class FakePath:
+            def __init__(self, stem, payload):
+                self.stem, self.payload = stem, payload
+
+            def read_text(self, encoding):
+                return json.dumps(self.payload)
+
+            def __lt__(self, other):
+                return self.stem < other.stem
+
+        paths = [FakePath("014_run", {"run_key": "014_run", "status": "complete"}),
+                 FakePath("014_run_progress", {"run_key": "014_run", "status": "in_progress"}),
+                 FakePath("014_run_generations", [{"response": "text"}]),
+                 FakePath("014_run_pairs", {"train": [], "eval": []})]
+        self.assertEqual(isolated_functions()["completed_result_paths"](FakeDirectory()), paths[:1])
+
+    def test_calibration_uses_probability_bins_including_endpoints(self):
+        import numpy as np
+        ece = isolated_functions()["calibration_error"]
+        self.assertEqual(ece(np.array([0.0, 1.0]), np.array([0.0, 1.0])), 0.0)
+        self.assertEqual(ece(np.array([0.5, 0.5]), np.array([0.0, 1.0])), 0.0)
+        self.assertEqual(ece(np.array([0.5, 0.5]), np.array([1.0, 1.0])), 0.5)
 
 
 if __name__ == "__main__":

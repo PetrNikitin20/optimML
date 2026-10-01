@@ -579,6 +579,9 @@ def save_training_checkpoint(
     checkpoint_adapter_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(checkpoint_adapter_dir)
     state = {
+        "protocol_version": PROTOCOL_VERSION,
+        "config": asdict(cfg),
+        "data_sha256": data_hash,
         "optimizer_steps": steps,
         "examples_seen": examples,
         "losses": losses,
@@ -599,9 +602,11 @@ def restore_training_checkpoint(optimizer: torch.optim.Optimizer) -> dict[str, A
     if not (checkpoint_path.exists() and adapter_file.exists()):
         return None
     device = next(model.parameters()).device
+    state = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    if state.get("protocol_version") != PROTOCOL_VERSION or state.get("config") != asdict(cfg) or state.get("data_sha256") != data_hash:
+        raise RuntimeError("Checkpoint protocol/config/data mismatch; refusing unsafe resume")
     adapter_state = load_safetensors(str(adapter_file), device=str(device))
     set_peft_model_state_dict(model, adapter_state)
-    state = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     optimizer.load_state_dict(state["optimizer"])
     move_optimizer_state_to_device(optimizer)
     torch.set_rng_state(state["torch_rng_state"])
@@ -981,9 +986,16 @@ def flatten_result(path: Path) -> dict[str, Any]:
     return row
 
 
-completed = pd.DataFrame(
-    [flatten_result(p) for p in sorted((OUTPUT_ROOT / "runs" / "full").glob("[0-9][0-9][0-9]_*.json"))]
-)
+def completed_result_paths(directory: Path) -> list[Path]:
+    paths = []
+    for path in sorted(directory.glob("[0-9][0-9][0-9]_*.json")):
+        obj = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(obj, dict) and obj.get("status") == "complete" and obj.get("run_key") == path.stem:
+            paths.append(path)
+    return paths
+
+
+completed = pd.DataFrame([flatten_result(p) for p in completed_result_paths(OUTPUT_ROOT / "runs" / "full")])
 aggregate_path = OUTPUT_ROOT / "factorial_results.csv"
 completed.to_csv(aggregate_path, index=False)
 print(f"Completed {len(completed)} / {len(MANIFEST)} runs")
