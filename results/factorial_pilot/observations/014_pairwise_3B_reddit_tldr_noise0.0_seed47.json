@@ -1,0 +1,15 @@
+{
+  "status": "metrics_observed_runtime_lost_before_final_save",
+  "protocol_version": "legacy_v1",
+  "run_index": 14,
+  "config": {"loss": "pairwise", "model_label": "3B", "model_id": "Qwen/Qwen2.5-3B-Instruct", "dataset": "reddit_tldr", "noise": 0.0, "seed": 47},
+  "provenance": "Transcribed from visible Colab cell outputs. No completed result JSON, raw rows, responses, adapter or optimizer checkpoint recovered. Excluded from completed-run summaries and publication evidence.",
+  "completed_utc": null,
+  "data_sha256": "3390d6dc1cff08f83b8420811bd4312b0ddb6edc5db18d45f084e0e555c0a694",
+  "gradient_preflight": {"loss": 0.6931471824645996, "grad_norm": 1.3554197549819946},
+  "train": {"train_loss_last_25": 0.6558741688728332, "train_seconds": 210.82545876000006, "optimizer_steps": 10, "examples_seen": 40, "examples_per_second": 0.18973040654229187, "peak_gpu_memory_gb": 3.9395437240600586, "trainable_parameters": 29933568, "total_parameters_quantized_storage_legacy": 1728606208},
+  "evaluation": {"likelihood_ranking_accuracy_legacy_ratio": 0.5, "brier": 0.23701675848053827, "ece_15_legacy_chosen_first": 0.48417075056862346, "c_mean": -3.188159255310893, "c_abs_mean": 3.188159255310893, "c_sd": 1.0758804576432617, "d_mean": 0.6427643522620201, "d_abs_mean": 1.6602042838931084, "d_sd": 2.0744673773248445, "n_eval_pairs": 64},
+  "kl_to_sft": 1.489483211768053,
+  "curvature": {"empirical_fisher_top_eigenvalue_legacy_objective_opg": 2.040938377380371, "empirical_fisher_trace_legacy_objective_opg": 3.563032865524292, "hessian_top_eigenvalue_power_legacy_dropout_enabled": -2.4115250391696463, "hessian_hvp_epsilon": 0.001, "curvature_batches": 2},
+  "generation": {"judge_model": "OpenAssistant/reward-model-deberta-v3-large-v2", "generation_win_rate_vs_sft": 0.5, "generation_tie_rate": 0.0, "mean_reward_delta": 0.6126355715095997, "policy_response_length_tokens": 62.25, "sft_response_length_tokens": 82.625, "n_generation_prompts": 8}
+}

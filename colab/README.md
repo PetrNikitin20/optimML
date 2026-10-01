@@ -1,5 +1,13 @@
 # Colab factorial experiment
 
+**Protocol v2 (2026-10-01):** corrected pilots are now stored under
+`optimML_factorial/protocol_v2`. Earlier measurements are legacy instrumentation
+checks, not publication evidence. See [the protocol audit](../results/PROTOCOL_AUDIT.md).
+Each stage has an atomic progress JSON; final JSON is saved automatically after
+judging. Local output remains ephemeral and must be exported before disconnecting.
+`OPTIMML_LOCAL_OUTPUT=1` bypasses Drive mounting; `OPTIMML_RUN_INDEX` selects a run
+for scripted execution. Existing complete v2 files cause a hard stop, not overwrite.
+
 `factorial_preference_study.ipynb` runs one cell of the real-data factorial design per Colab session and writes immutable JSON results to `MyDrive/optimML_factorial`.
 
 The notebook defaults to the `pilot` profile so an accidental click does not launch a multi-hour full run. Three profiles are available:

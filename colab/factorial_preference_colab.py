@@ -47,11 +47,17 @@ from transformers import (
 
 try:
     from google.colab import drive
-    drive.mount("/content/drive")
-    OUTPUT_ROOT = Path("/content/drive/MyDrive/optimML_factorial")
+    if os.environ.get("OPTIMML_LOCAL_OUTPUT") == "1":
+        OUTPUT_ROOT = Path("./optimML_factorial")
+    else:
+        drive.mount("/content/drive")
+        OUTPUT_ROOT = Path("/content/drive/MyDrive/optimML_factorial")
 except ImportError:
     OUTPUT_ROOT = Path("./optimML_factorial")
 
+# Never pool the corrected measurements with legacy instrumentation pilots.
+PROTOCOL_VERSION = "v2"
+OUTPUT_ROOT = OUTPUT_ROOT / "protocol_v2"
 OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 (OUTPUT_ROOT / "runs").mkdir(exist_ok=True)
 (OUTPUT_ROOT / "manifests").mkdir(exist_ok=True)
@@ -123,7 +129,7 @@ print(f"Manifest: {len(MANIFEST)} runs -> {manifest_path}")
 # Change only `RUN_INDEX`. Completed indices are skipped automatically.
 
 # %%
-RUN_INDEX = 0  # @param {type:"integer"}
+RUN_INDEX = int(os.environ.get("OPTIMML_RUN_INDEX", "0"))  # @param {type:"integer"}
 EXECUTION_PROFILE = "pilot"  # @param ["smoke", "pilot", "full"]
 
 
@@ -178,7 +184,38 @@ print(asdict(cfg))
 print("Execution profile:", EXECUTION_PROFILE)
 print("Result:", result_path)
 if result_path.exists():
-    print("This run is already complete. Choose another RUN_INDEX.")
+    raise RuntimeError("This run is already complete. Choose another RUN_INDEX; overwriting is disabled.")
+
+
+progress_path = RUN_DIR / f"{run_key}_progress.json"
+progress = {"schema_version": 2, "protocol_version": PROTOCOL_VERSION,
+            "run_index": RUN_INDEX, "run_key": run_key,
+            "execution_profile": EXECUTION_PROFILE, "config": asdict(cfg)}
+
+
+def save_stage(stage: str, **values: Any) -> None:
+    progress.update(values)
+    progress.update(stage=stage, status="in_progress", updated_utc=pd.Timestamp.utcnow().isoformat())
+    tmp = progress_path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(progress, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(progress_path)
+    print("STAGE_SAVED", stage, str(progress_path), flush=True)
+
+
+def finish_run() -> dict[str, Any]:
+    artifacts = {}
+    for path in (row_path, generation_path, pair_path):
+        artifacts[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    result = {**progress, "status": "complete", "stage": "complete",
+              "artifact_sha256": artifacts, "row_metrics_path": str(row_path),
+              "completed_utc": pd.Timestamp.utcnow().isoformat()}
+    tmp = result_path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(result_path)
+    print("RESULT_JSON_BEGIN", flush=True)
+    print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
+    print("RESULT_JSON_END", flush=True)
+    return result
 
 
 def require_gpu() -> dict[str, Any]:
@@ -197,11 +234,15 @@ def require_gpu() -> dict[str, Any]:
 
 
 SYSTEM_INFO = require_gpu()
+save_stage("configured", system=SYSTEM_INFO)
 
 # %%
 def messages_to_text(value: Any) -> str:
     if isinstance(value, str):
         return value
+    if isinstance(value, dict):
+        # Reddit summaries contain text, policy, and note. Only text is a response.
+        return messages_to_text(value.get("content", value.get("text", "")))
     if isinstance(value, list):
         parts = []
         for item in value:
@@ -210,7 +251,7 @@ def messages_to_text(value: Any) -> str:
             else:
                 parts.append(str(item))
         return "\n".join(x for x in parts if x)
-    return str(value)
+    return ""
 
 
 def assistant_message(value: Any) -> str:
@@ -297,8 +338,13 @@ LOADERS = {
 
 def prepare_pairs(config: StudyConfig) -> tuple[list[dict[str, str]], list[dict[str, str]], str]:
     rows = LOADERS[config.dataset]()
-    rng = random.Random(config.seed)
-    rng.shuffle(rows)
+    # Fixed, prompt-disjoint data across model, loss, noise and training seeds.
+    # One comparison per unique prompt prevents repeated posts leaking to holdout.
+    unique = {}
+    for row in rows:
+        unique.setdefault(row["prompt"], row)
+    rows = [unique[key] for key in sorted(unique)]
+    random.Random(20261001).shuffle(rows)
     required = config.train_pairs + config.eval_pairs
     if len(rows) < required:
         raise ValueError(f"{config.dataset}: only {len(rows)} valid pairs; need {required}")
@@ -319,9 +365,15 @@ def prepare_pairs(config: StudyConfig) -> tuple[list[dict[str, str]], list[dict[
 
 
 train_pairs, eval_pairs, data_hash = prepare_pairs(cfg)
+pair_path = RUN_DIR / f"{run_key}_pairs.json"
+pair_path.write_text(json.dumps({"train": train_pairs, "eval": eval_pairs}, ensure_ascii=False), encoding="utf-8")
+save_stage("data_prepared", data_sha256=data_hash,
+           data_protocol={"split_seed": 20261001, "prompt_disjoint": True,
+                          "one_pair_per_prompt": True, "evaluation_fixed_across_training_seeds": True})
 
 # %%
 def load_policy(config: StudyConfig):
+    set_seed(config.seed)  # Must precede randomly initialized LoRA matrices.
     compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     quant = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -381,7 +433,8 @@ def encode_response(prompt: str, response: str, max_length: int) -> dict[str, to
     response_ids = tokenizer(response, add_special_tokens=False)["input_ids"]
     if tokenizer.eos_token_id is not None:
         response_ids = response_ids + [tokenizer.eos_token_id]
-    response_ids = response_ids[: max(1, max_length - 1)]
+    # Preserve meaningful prompt context, not only a single prefix token.
+    response_ids = response_ids[: max(1, max_length // 2)]
     prefix_budget = max_length - len(response_ids)
     prefix_ids = prefix_ids[-max(1, prefix_budget) :]
     input_ids = prefix_ids + response_ids
@@ -472,6 +525,8 @@ def validate_trainable_gradients() -> dict[str, float]:
 
 
 GRADIENT_PREFLIGHT = validate_trainable_gradients()
+save_stage("gradient_validated", gradient_preflight=GRADIENT_PREFLIGHT,
+           model_revision=getattr(model.config, "_commit_hash", None))
 
 # %%
 def deterministic_training_batches(config: StudyConfig, start_micro_step: int):
@@ -615,7 +670,7 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
             torch.cuda.max_memory_allocated() / 2**30,
         ),
         "trainable_parameters": int(sum(p.numel() for p in trainable)),
-        "total_parameters": int(sum(p.numel() for p in model.parameters())),
+        "total_parameters": int(model.num_parameters()),
         "adapter_path": str(adapter_dir),
         "checkpoint_path": str(checkpoint_path),
         "execution_profile": EXECUTION_PROFILE,
@@ -624,6 +679,7 @@ def train_one(config: StudyConfig) -> dict[str, Any]:
 
 train_metrics = train_one(cfg)
 print(train_metrics)
+save_stage("trained", train=train_metrics)
 
 # %%
 def calibration_error(prob: np.ndarray, target: np.ndarray, bins: int = 15) -> float:
@@ -660,11 +716,19 @@ def evaluate_pairs(rows: list[dict[str, str]]) -> tuple[dict[str, float], pd.Dat
             )
     frame = pd.DataFrame(records)
     prob = 1.0 / (1.0 + np.exp(-cfg.beta * frame["d"].to_numpy()))
-    target = np.ones(len(prob), dtype=np.float64)
+    # Deterministic balanced left/right presentation. A chosen-first-only ECE
+    # measures mean underconfidence, not ordinary binary probability calibration.
+    target = (np.arange(len(prob)) % 2 == 0).astype(np.float64)
+    oriented_prob = np.where(target == 1, prob, 1.0 - prob)
+    frame["chosen_first_probability"] = prob
+    frame["presentation_target"] = target
+    frame["presentation_probability"] = oriented_prob
     metrics = {
-        "likelihood_ranking_accuracy": float((frame["d"] > 0).mean()),
-        "brier": float(brier_score_loss(target, prob)),
-        "ece_15": calibration_error(prob, target, bins=15),
+        "likelihood_ranking_accuracy": float((frame["policy_chosen_logp"] > frame["policy_rejected_logp"]).mean()),
+        "reference_ratio_ranking_accuracy": float((frame["d"] > 0).mean()),
+        "sft_likelihood_ranking_accuracy": float((frame["sft_chosen_logp"] > frame["sft_rejected_logp"]).mean()),
+        "brier": float(brier_score_loss(target, oriented_prob)),
+        "ece_15": calibration_error(oriented_prob, target, bins=15),
         "c_mean": float(frame["c"].mean()),
         "c_abs_mean": float(frame["c"].abs().mean()),
         "c_sd": float(frame["c"].std(ddof=1)),
@@ -680,6 +744,7 @@ eval_metrics, row_metrics = evaluate_pairs(eval_pairs)
 row_path = RUN_DIR / f"{run_key}_rows.parquet"
 row_metrics.to_parquet(row_path, index=False)
 print(eval_metrics)
+save_stage("evaluated", evaluation=eval_metrics)
 
 # %%
 def trainable_parameters() -> list[torch.nn.Parameter]:
@@ -696,16 +761,23 @@ def flatten_tensors(tensors: Iterable[torch.Tensor | None], params: list[torch.n
 def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
     gc.collect()
     torch.cuda.empty_cache()
-    model.train()
+    model.eval()  # Keep autograd, disable dropout for both finite-difference probes.
+    set_seed(cfg.seed + 2_000_003)
     params = trainable_parameters()
     sample = rows[: cfg.curvature_batches]
     batches = [collate_pairs([x]) for x in sample]
     grad_rows = []
     for batch in batches:
         model.zero_grad(set_to_none=True)
-        loss, _ = preference_loss(batch, cfg.loss)
-        grads = torch.autograd.grad(loss, params, allow_unused=True)
-        grad_rows.append(flatten_tensors(grads, params).float().cpu())
+        policy = forward_logps(batch)
+        with torch.no_grad():
+            reference = forward_logps(batch, reference=True)
+        scores = policy - reference
+        logit = cfg.beta * (scores[0] - scores[1])
+        probability = logit.detach().sigmoid()
+        grads = torch.autograd.grad(logit, params, allow_unused=True)
+        weight = (probability * (1 - probability)).sqrt().cpu()
+        grad_rows.append(flatten_tensors(grads, params).float().cpu() * weight)
     G = torch.stack(grad_rows)
     singular = torch.linalg.svdvals(G / math.sqrt(len(G)))
     fisher_top = float(singular[0].square())
@@ -717,11 +789,12 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
     vector = [v / norm.to(v.dtype) for v in vector]
     eigenvalue = float("nan")
     batch = batches[0]
+    baseline = [p.detach().clone() for p in params]
 
     def gradient_at_offset(direction: list[torch.Tensor], offset: float) -> list[torch.Tensor]:
         with torch.no_grad():
-            for param, value in zip(params, direction):
-                param.add_(value, alpha=offset)
+            for param, base, value in zip(params, baseline, direction):
+                param.copy_(base + offset * value)
         try:
             model.zero_grad(set_to_none=True)
             loss, _ = preference_loss(batch, cfg.loss)
@@ -734,8 +807,8 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
             ]
         finally:
             with torch.no_grad():
-                for param, value in zip(params, direction):
-                    param.add_(value, alpha=-offset)
+                for param, base in zip(params, baseline):
+                    param.copy_(base)
             model.zero_grad(set_to_none=True)
             torch.cuda.empty_cache()
 
@@ -763,7 +836,9 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
     return {
         "empirical_fisher_top_eigenvalue": fisher_top,
         "empirical_fisher_trace": fisher_trace,
+        "fisher_definition": "conditional_Bernoulli_preference_Fisher_p(1-p)_grad_logit_outer_product",
         "hessian_top_eigenvalue_power": eigenvalue,
+        "hessian_estimate_interpretation": "dominant_magnitude_Rayleigh_quotient; diagnostic_not_largest_algebraic_eigenvalue",
         "hessian_hvp_method": "central_finite_difference",
         "hessian_hvp_epsilon": epsilon,
         "curvature_batches": len(batches),
@@ -772,6 +847,7 @@ def curvature_estimates(rows: list[dict[str, str]]) -> dict[str, float]:
 
 curvature_metrics = curvature_estimates(eval_pairs)
 print(curvature_metrics)
+save_stage("curvature_evaluated", curvature=curvature_metrics)
 
 # %%
 @torch.no_grad()
@@ -798,6 +874,7 @@ def categorical_kl(rows: list[dict[str, str]], limit: int = 24) -> float:
 
 kl_metric = categorical_kl(eval_pairs)
 print("KL(policy || SFT):", kl_metric)
+save_stage("kl_evaluated", kl_to_sft=kl_metric)
 
 
 def generate_texts(prompts: list[str], adapter_enabled: bool) -> tuple[list[str], list[int]]:
@@ -838,6 +915,10 @@ def judge_win_rate(prompts: list[str], policy_texts: list[str], sft_texts: list[
                 ).to("cuda")
                 target.append(float(judge(**encoded).logits.squeeze().float().cpu()))
     policy_arr, sft_arr = np.asarray(policy_scores), np.asarray(sft_scores)
+    global judge_records
+    judge_records = [{"prompt": prompt, "policy_response": pt, "sft_response": st,
+                      "policy_reward": ps, "sft_reward": ss}
+                     for prompt, pt, st, ps, ss in zip(prompts, policy_texts, sft_texts, policy_scores, sft_scores)]
     del judge
     gc.collect()
     torch.cuda.empty_cache()
@@ -862,29 +943,14 @@ generation_metrics.update(
     }
 )
 print(generation_metrics)
+generation_path = RUN_DIR / f"{run_key}_generations.json"
+generation_path.write_text(json.dumps(judge_records, ensure_ascii=False, indent=2), encoding="utf-8")
+save_stage("generation_evaluated", generation=generation_metrics)
+# Save immediately, not only in a manually executed subsequent notebook cell.
+result = finish_run()
 
 # %%
-result = {
-    "schema_version": 1,
-    "execution_profile": EXECUTION_PROFILE,
-    "run_index": RUN_INDEX,
-    "run_key": run_key,
-    "config": asdict(cfg),
-    "system": SYSTEM_INFO,
-    "data_sha256": data_hash,
-    "gradient_preflight": GRADIENT_PREFLIGHT,
-    "train": train_metrics,
-    "evaluation": eval_metrics,
-    "kl_to_sft": kl_metric,
-    "curvature": curvature_metrics,
-    "generation": generation_metrics,
-    "row_metrics_path": str(row_path),
-    "completed_utc": pd.Timestamp.utcnow().isoformat(),
-}
-tmp_path = result_path.with_suffix(".json.tmp")
-tmp_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-tmp_path.replace(result_path)
-print("Saved verified run:", result_path)
+print("Saved complete run:", result_path)
 
 # %% [markdown]
 # ## Aggregate completed runs
