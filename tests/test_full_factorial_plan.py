@@ -1,0 +1,72 @@
+import importlib.util
+import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def module(path):
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    result = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(result)
+    return result
+
+
+plan = module(ROOT / "tools/plan_full_factorial.py")
+preflight = module(ROOT / "colab/full_design_preflight.py")
+
+
+class FullFactorialTests(unittest.TestCase):
+    def test_manifest_has_matched_seeds_in_every_cell(self):
+        configs = plan.manifest_from_source(ROOT / "colab/factorial_preference_colab.py")
+        self.assertEqual(len(configs), 288)
+        cells = {}
+        for config in configs:
+            key = tuple(config[k] for k in ["loss", "model_label", "dataset", "noise"])
+            cells.setdefault(key, set()).add(config["seed"])
+        self.assertEqual(len(cells), 96)
+        self.assertTrue(all(seeds == {11, 29, 47} for seeds in cells.values()))
+
+    def test_real_pilot_does_not_count_as_full(self):
+        configs = plan.manifest_from_source(ROOT / "colab/factorial_preference_colab.py")
+        _, status = plan.coverage(configs, ROOT / "results/factorial_v2")
+        self.assertEqual(status["full_budget_runs"], 0)
+        self.assertGreaterEqual(len(status["ignored_non_full_records"]), 1)
+        self.assertFalse(status["publication_ready"])
+
+    def test_incomplete_budget_rejected_even_if_renamed_full(self):
+        configs = plan.manifest_from_source(ROOT / "colab/factorial_preference_colab.py")
+        record = json.loads((ROOT / "results/factorial_v2/runs/pilot/014_pairwise_3B_reddit_tldr_noise0.0_seed47.json").read_text())
+        record["execution_profile"] = "full"
+        self.assertIn("mismatch:config", plan.full_training_errors(record, 14, configs[14]))
+        self.assertIn("incomplete_optimizer_budget", plan.full_training_errors(record, 14, configs[14]))
+
+    def test_missing_results_are_not_imputed(self):
+        configs = plan.manifest_from_source(ROOT / "colab/factorial_preference_colab.py")
+        with TemporaryDirectory() as tmp:
+            cells, status = plan.coverage(configs, Path(tmp))
+        self.assertEqual(status["missing_or_conflicting_runs"], 288)
+        self.assertTrue(all(x["coverage_status"] == "missing" for x in cells))
+
+    def test_finite_difference_or_projected_hessian_is_not_full_validation(self):
+        errors = plan.publication_errors({"curvature": {"hessian_validated": True,
+                                          "hessian_scope": "last_MLP_projection_only"}})
+        self.assertIn("full_scope_Hessian_not_validated", errors)
+
+    def test_cardinality_uses_unique_prompts_not_comparisons(self):
+        rows = [{"prompt": "Hello", "chosen": "yes", "rejected": "no"}] * 100
+        result = preflight.cardinality(rows, 3, 2)
+        self.assertEqual(result["unique_exact_prompts"], 1)
+        self.assertFalse(result["exact_cardinality_pass"])
+
+    def test_basic_normalization_detects_superficial_duplicates(self):
+        rows = [{"prompt": x, "chosen": "yes", "rejected": "no"} for x in [" HELLO  world", "hello world"]]
+        result = preflight.cardinality(rows, 1, 1)
+        self.assertTrue(result["exact_cardinality_pass"])
+        self.assertFalse(result["normalized_cardinality_pass"])
+
+
+if __name__ == "__main__":
+    unittest.main()

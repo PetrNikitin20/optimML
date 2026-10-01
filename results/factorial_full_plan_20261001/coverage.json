@@ -1,0 +1,18 @@
+{
+  "expected_runs": 288,
+  "full_budget_runs": 0,
+  "full_budget_metrics_present": 0,
+  "missing_or_conflicting_runs": 288,
+  "ignored_non_full_records": [
+    {
+      "file": "C:\\Users\\PETR\\Documents\\Codex\\2026-08-01\\new-chat-3\\optimML\\results\\factorial_v2\\runs\\pilot\\014_pairwise_3B_reddit_tldr_noise0.0_seed47.json",
+      "reason": "not_full_profile"
+    }
+  ],
+  "rejected_records": [],
+  "publication_ready": false,
+  "publication_note": "Coverage is not independent verification, uncertainty analysis or scientific protocol approval.",
+  "checked_utc": "2026-10-01T11:57:24.760549+00:00",
+  "source_sha256": "91f36ea19e9b400d19b939517656cc2d887e18d58de0bff4b1754dd5c02511a8",
+  "purpose": "planning_and_coverage_not_measured_results"
+}
