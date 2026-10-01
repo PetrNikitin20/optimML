@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import gc
 import hashlib
+import importlib.metadata
 import json
 import math
 import os
@@ -190,7 +191,9 @@ if result_path.exists():
 progress_path = RUN_DIR / f"{run_key}_progress.json"
 progress = {"schema_version": 2, "protocol_version": PROTOCOL_VERSION,
             "run_index": RUN_INDEX, "run_key": run_key,
-            "execution_profile": EXECUTION_PROFILE, "config": asdict(cfg)}
+            "execution_profile": EXECUTION_PROFILE, "config": asdict(cfg),
+            "source_revision": os.environ.get("OPTIMML_SOURCE_REVISION"),
+            "source_sha256": os.environ.get("OPTIMML_SOURCE_SHA256")}
 
 
 def save_stage(stage: str, **values: Any) -> None:
@@ -228,6 +231,8 @@ def require_gpu() -> dict[str, Any]:
         "torch": torch.__version__,
         "cuda": torch.version.cuda,
         "python": platform.python_version(),
+        "packages": {name: importlib.metadata.version(name) for name in
+                     ("transformers", "datasets", "peft", "accelerate", "bitsandbytes", "numpy", "pandas")},
     }
     print(info)
     return info
@@ -278,7 +283,11 @@ def load_ultrafeedback() -> list[dict[str, str]]:
 
 
 def load_reddit_tldr() -> list[dict[str, str]]:
-    ds = load_dataset("openai/summarize_from_feedback", "comparisons", split="train")
+    # Pin the published Parquet export; datasets 4 no longer executes scripts.
+    revision = "a4d82a1068e43c8edee69c452a7e763722bd5496"
+    url = f"hf://datasets/openai/summarize_from_feedback@{revision}/comparisons/train/0000.parquet"
+    ds = load_dataset("parquet", data_files={"train": url}, split="train")
+    save_stage("dataset_loaded", dataset_revision=revision, dataset_fingerprint=ds._fingerprint)
     rows = []
     for x in ds:
         info = x.get("info", {})
@@ -374,6 +383,7 @@ save_stage("data_prepared", data_sha256=data_hash,
 # %%
 def load_policy(config: StudyConfig):
     set_seed(config.seed)  # Must precede randomly initialized LoRA matrices.
+    revision = "aa8e72537993ba99e69dfaafa59ed015b17504d1" if config.model_id == "Qwen/Qwen2.5-3B-Instruct" else None
     compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
     quant = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -381,11 +391,12 @@ def load_policy(config: StudyConfig):
         bnb_4bit_use_double_quant=True,
         bnb_4bit_compute_dtype=compute_dtype,
     )
-    tokenizer = AutoTokenizer.from_pretrained(config.model_id, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(config.model_id, revision=revision, use_fast=True)
     tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
     tokenizer.padding_side = "right"
     model = AutoModelForCausalLM.from_pretrained(
         config.model_id,
+        revision=revision,
         quantization_config=quant,
         device_map="auto",
         torch_dtype=compute_dtype,
