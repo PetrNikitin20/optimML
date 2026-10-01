@@ -67,6 +67,23 @@ class FullFactorialTests(unittest.TestCase):
         self.assertTrue(result["exact_cardinality_pass"])
         self.assertFalse(result["normalized_cardinality_pass"])
 
+    def test_corrected_split_is_normalized_disjoint_and_order_independent(self):
+        rows = [{"prompt": f" Question {i} ", "chosen": "yes", "rejected": "no"} for i in range(20)]
+        rows += [{"prompt": f"question {i}", "chosen": "other", "rejected": "bad"} for i in range(20)]
+        train, holdout = preflight.prepare_confirmatory_split(rows, 8, 6)
+        self.assertEqual((train, holdout), preflight.prepare_confirmatory_split(list(reversed(rows)), 8, 6))
+        self.assertFalse({preflight.normalized_prompt(x["prompt"]) for x in train}
+                         & {preflight.normalized_prompt(x["prompt"]) for x in holdout})
+        self.assertEqual(len(train), 8)
+        self.assertEqual(len(holdout), 6)
+
+    def test_corrected_split_filters_whitespace_and_equal_responses(self):
+        rows = [{"prompt": "valid", "chosen": "yes", "rejected": "no"},
+                {"prompt": "invalid", "chosen": " ", "rejected": "no"},
+                {"prompt": "same", "chosen": "yes", "rejected": "yes"}]
+        with self.assertRaises(ValueError):
+            preflight.prepare_confirmatory_split(rows, 1, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

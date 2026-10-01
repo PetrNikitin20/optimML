@@ -45,12 +45,42 @@ def cardinality(rows: list[dict], train: int, evaluation: int) -> dict:
             "normalization": "NFKC_casefold_whitespace_only_not_semantic_deduplication"}
 
 
-def inspect_data(source: bytes, selected: list[str], train: int, evaluation: int) -> dict:
+def prepare_confirmatory_split(rows: list[dict], train: int, evaluation: int) -> tuple[list, list]:
+    """Proposed v3 partition. Preserve texts; deduplicate normalized prompt keys.
+
+    Deterministic lexicographic selection is label-independent in its ordering
+    of the two responses. It does not select by perceived response quality.
+    This is basic normalization, NOT a semantic near-duplicate audit.
+    """
+    valid = [dict(x) for x in rows if all(isinstance(x.get(k), str) and x[k].strip()
+             for k in ("prompt", "chosen", "rejected")) and x["chosen"] != x["rejected"]]
+    unique = {}
+    for row in sorted(valid, key=lambda x: (x["prompt"], tuple(sorted([x["chosen"], x["rejected"]])))):
+        unique.setdefault(normalized_prompt(row["prompt"]), row)
+    ordered = [unique[key] for key in sorted(unique)]
+    random.Random(20261001).shuffle(ordered)
+    if len(ordered) < train + evaluation:
+        raise ValueError("Insufficient unique normalized prompts for the full budget")
+    training, holdout = ordered[:train], ordered[train:train + evaluation]
+    if {normalized_prompt(x["prompt"]) for x in training} & {normalized_prompt(x["prompt"]) for x in holdout}:
+        raise AssertionError("Normalized prompt leakage")
+    return training, holdout
+
+
+def inspect_data(source: bytes, selected: list[str], train: int, evaluation: int,
+                 export_dir: Path | None = None, revision_report: dict | None = None) -> dict:
     from datasets import get_dataset_split_names, load_dataset
     from huggingface_hub import HfApi
 
     api = HfApi()
     revisions, provenance = {}, {}
+    if revision_report:
+        for label in selected:
+            prov = revision_report["datasets"][label]["provenance"]
+            revision = prov.get("revision", prov.get("dataset_revision"))
+            if not revision:
+                raise ValueError("No pinned revision for " + label)
+            revisions[DATASET_IDS[label]] = revision
 
     def pin(name, *args, **kwargs):
         if name != "parquet":
@@ -96,6 +126,23 @@ def inspect_data(source: bytes, selected: list[str], train: int, evaluation: int
             ).encode("utf-8")).hexdigest()
             report["provenance"] = dict(provenance.get(DATASET_IDS[label],
                                            provenance.get(label, {})))
+            if export_dir is not None:
+                training, holdout = prepare_confirmatory_split(rows, train, evaluation)
+                canonical = "\n".join(json.dumps(x, sort_keys=True, ensure_ascii=False)
+                                       for x in training + holdout)
+                export_path = export_dir / (label + "_clean_pairs.json")
+                if export_path.exists():
+                    raise FileExistsError("Prepared data must not be overwritten")
+                export_path.write_text(json.dumps({"data_protocol": "proposed_v3_normalized_prompt_split",
+                    "train": training, "eval": holdout}, ensure_ascii=False), encoding="utf-8")
+                report["proposed_v3_split"] = {
+                    "train_pairs": len(training), "eval_pairs": len(holdout),
+                    "normalized_train_eval_prompt_overlap": 0,
+                    "data_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+                    "export_sha256": hashlib.sha256(export_path.read_bytes()).hexdigest(),
+                    "export_file": export_path.name,
+                    "scope": "prepared_real_data_not_training_or_evaluation_results",
+                    "semantic_near_duplicate_audit_complete": False}
             output[label] = report
             print("PREFLIGHT_DATA", label, json.dumps(report), flush=True)
         except Exception as error:
@@ -112,10 +159,17 @@ def main():
     parser.add_argument("--datasets", nargs="+", choices=list(DATASET_IDS), default=list(DATASET_IDS))
     parser.add_argument("--train-pairs", type=int, default=4000)
     parser.add_argument("--eval-pairs", type=int, default=800)
+    parser.add_argument("--export-pairs-dir", type=Path)
+    parser.add_argument("--revision-report", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError("Preflight evidence must not be overwritten")
     source = args.source.read_bytes()
+    if args.export_pairs_dir:
+        if args.export_pairs_dir.exists():
+            raise FileExistsError("Choose a new prepared-data directory")
+        args.export_pairs_dir.mkdir(parents=True)
+    revision_report = json.loads(args.revision_report.read_text()) if args.revision_report else None
     try:
         gpu = subprocess.check_output(["nvidia-smi", "--query-gpu=name,memory.total,memory.used",
                                        "--format=csv,noheader"], text=True).strip()
@@ -126,7 +180,8 @@ def main():
               "source_sha256": hashlib.sha256(source).hexdigest(),
               "python": platform.python_version(), "gpu": gpu,
               "colab_drive_mounted": os.path.ismount("/content/drive"),
-              "datasets": inspect_data(source, args.datasets, args.train_pairs, args.eval_pairs)}
+              "datasets": inspect_data(source, args.datasets, args.train_pairs, args.eval_pairs,
+                                       args.export_pairs_dir, revision_report)}
     result["all_requested_data_checks_pass"] = all(
         x.get("exact_cardinality_pass", False) and x.get("normalized_cardinality_pass", False)
         and x.get("normalized_train_eval_prompt_overlap") == 0 for x in result["datasets"].values())
