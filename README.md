@@ -8,6 +8,12 @@ Corrected v2 experiments are kept separate. The existing SWSYS manuscript is a
 historical draft, not submission-ready; its empirical section must be rebuilt
 from validated v2 measurements. See [PROTOCOL_AUDIT.md](results/PROTOCOL_AUDIT.md).
 
+The [full 288-run coverage plan](results/factorial_full_plan_20261001/README.md)
+and real-data preflight are now available. Full-budget coverage is still 0/288.
+The data audit found normalized train/holdout prompt overlaps in Reddit TL;DR
+and HelpSteer2; corrected data preparation is separate from pilot evidence.
+Expensive execution requires the listed scientific and durable-compute gates.
+
 Reproducible materials for the Russian and English drafts of the SUMMA 2026 conference paper on gradient geometry and pairwise versus pointwise preference optimization.
 
 ## What is measured

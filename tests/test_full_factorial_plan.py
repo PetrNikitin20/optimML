@@ -84,6 +84,22 @@ class FullFactorialTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             preflight.prepare_confirmatory_split(rows, 1, 1)
 
+    def test_real_corrected_preflight_evidence_is_hashed_and_not_training(self):
+        import hashlib
+        directory = ROOT / "results/factorial_full_plan_20261001"
+        for name, digest in [("original", "fe9a669d33031d17ed55779b5c8310a151f30ba577449865a200544a3409969a"),
+                             ("corrected", "1fa1b91a700cd13ae9284386764144ddfc031f222d522ad8fee3bb026ecbfe00")]:
+            payload = (directory / ("preflight_" + name + ".json")).read_bytes()
+            self.assertEqual(hashlib.sha256(payload).hexdigest(), digest)
+        report = json.loads((directory / "preflight_corrected.json").read_text())
+        self.assertFalse(report["full_design_ready"])
+        self.assertEqual(len(report["datasets"]), 4)
+        for data in report["datasets"].values():
+            split = data["proposed_v3_split"]
+            self.assertEqual((split["train_pairs"], split["eval_pairs"]), (4000, 800))
+            self.assertEqual(split["normalized_train_eval_prompt_overlap"], 0)
+            self.assertFalse(split["semantic_near_duplicate_audit_complete"])
+
 
 if __name__ == "__main__":
     unittest.main()

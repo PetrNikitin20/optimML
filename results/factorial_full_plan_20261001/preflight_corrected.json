@@ -1,0 +1,121 @@
+{
+  "kind": "data_and_resource_preflight_not_training_results",
+  "created_utc": "2026-10-01T12:08:05.383127+00:00",
+  "source_sha256": "91f36ea19e9b400d19b939517656cc2d887e18d58de0bff4b1754dd5c02511a8",
+  "python": "3.13.15",
+  "gpu": "Tesla T4, 15360 MiB, 0 MiB",
+  "colab_drive_mounted": false,
+  "datasets": {
+    "ultrafeedback": {
+      "loaded_comparisons": 60630,
+      "valid_comparisons": 60630,
+      "unique_exact_prompts": 60620,
+      "unique_normalized_prompts": 60594,
+      "required_prompts": 4800,
+      "exact_cardinality_pass": true,
+      "normalized_cardinality_pass": true,
+      "normalization": "NFKC_casefold_whitespace_only_not_semantic_deduplication",
+      "normalized_train_eval_prompt_overlap": 0,
+      "selected_clean_pairs_sha256": "5f9210605c9d401a7bf01134140d57a7b73d1343b87a347896bf8b0dd53a3370",
+      "provenance": {
+        "revision": "3949bf5f8c17c394422ccfab0c31ea9c20bdeb85"
+      },
+      "proposed_v3_split": {
+        "train_pairs": 4000,
+        "eval_pairs": 800,
+        "normalized_train_eval_prompt_overlap": 0,
+        "data_sha256": "aa3f3e232b74159b5c1aa3b82d9bfb36d3d9049d0bb41171dcd7fc0947a84926",
+        "export_sha256": "29a0ec14fa9929343d2df1d528bf44b0350622cecd8ded22a469a8c140884d1c",
+        "export_file": "ultrafeedback_clean_pairs.json",
+        "scope": "prepared_real_data_not_training_or_evaluation_results",
+        "semantic_near_duplicate_audit_complete": false
+      }
+    },
+    "reddit_tldr": {
+      "loaded_comparisons": 92846,
+      "valid_comparisons": 92842,
+      "unique_exact_prompts": 14769,
+      "unique_normalized_prompts": 14757,
+      "required_prompts": 4800,
+      "exact_cardinality_pass": true,
+      "normalized_cardinality_pass": true,
+      "normalization": "NFKC_casefold_whitespace_only_not_semantic_deduplication",
+      "normalized_train_eval_prompt_overlap": 1,
+      "selected_clean_pairs_sha256": "30fda9eca9b9d66bd2e96b0b7731710e929890a718103d12069e0cd05c27b67e",
+      "provenance": {
+        "dataset_revision": "a4d82a1068e43c8edee69c452a7e763722bd5496",
+        "dataset_fingerprint": "80523030bf2f2242"
+      },
+      "proposed_v3_split": {
+        "train_pairs": 4000,
+        "eval_pairs": 800,
+        "normalized_train_eval_prompt_overlap": 0,
+        "data_sha256": "5fe99e73a45656f5b0fb1f3183b5945d021c930ff9c7c34893f2ba593bddce74",
+        "export_sha256": "51746a59329dbaa0dee7fdfbf0ecad99599e191283a4fca7e9e1c071b3dc432d",
+        "export_file": "reddit_tldr_clean_pairs.json",
+        "scope": "prepared_real_data_not_training_or_evaluation_results",
+        "semantic_near_duplicate_audit_complete": false
+      }
+    },
+    "helpsteer2": {
+      "loaded_comparisons": 7118,
+      "valid_comparisons": 7117,
+      "unique_exact_prompts": 7116,
+      "unique_normalized_prompts": 7108,
+      "required_prompts": 4800,
+      "exact_cardinality_pass": true,
+      "normalized_cardinality_pass": true,
+      "normalization": "NFKC_casefold_whitespace_only_not_semantic_deduplication",
+      "normalized_train_eval_prompt_overlap": 1,
+      "selected_clean_pairs_sha256": "73060cf98501f7bc8aff26f07c034a7e2e749ed339692e45c05d870dcf0f5126",
+      "provenance": {
+        "revision": "990b2711a36180dd19d9c94b8627844866f8982a"
+      },
+      "proposed_v3_split": {
+        "train_pairs": 4000,
+        "eval_pairs": 800,
+        "normalized_train_eval_prompt_overlap": 0,
+        "data_sha256": "fce3767b1df2604cd32596dc613e39d94d905a67c6966dfa7b33c5d7c1b03d4f",
+        "export_sha256": "d905e4b8273e3fa5f541fd3cc6f65b334e9f2a779a8f3dd2864e03f71df9813e",
+        "export_file": "helpsteer2_clean_pairs.json",
+        "scope": "prepared_real_data_not_training_or_evaluation_results",
+        "semantic_near_duplicate_audit_complete": false
+      }
+    },
+    "hh_rlhf": {
+      "loaded_comparisons": 160060,
+      "valid_comparisons": 159878,
+      "unique_exact_prompts": 159060,
+      "unique_normalized_prompts": 158970,
+      "required_prompts": 4800,
+      "exact_cardinality_pass": true,
+      "normalized_cardinality_pass": true,
+      "normalization": "NFKC_casefold_whitespace_only_not_semantic_deduplication",
+      "normalized_train_eval_prompt_overlap": 0,
+      "selected_clean_pairs_sha256": "737da4116eebd2d7289e01cbf45ed6aae3bff32ec7c43c16022a1a0998bcb33c",
+      "provenance": {
+        "revision": "09be8c5bbc57cb3887f3a9732ad6aa7ec602a1fa"
+      },
+      "proposed_v3_split": {
+        "train_pairs": 4000,
+        "eval_pairs": 800,
+        "normalized_train_eval_prompt_overlap": 0,
+        "data_sha256": "54fc99b27b84acafb379075537f767548f3c5a3a4e5f87a1b3497b48a3a7667f",
+        "export_sha256": "c7e937bffe9f9d7fa01badf3b25e78657abf8e7bf6af7d4ccd1f1db3409270b6",
+        "export_file": "hh_rlhf_clean_pairs.json",
+        "scope": "prepared_real_data_not_training_or_evaluation_results",
+        "semantic_near_duplicate_audit_complete": false
+      }
+    }
+  },
+  "all_requested_data_checks_pass": false,
+  "full_design_ready": false,
+  "additional_gates": [
+    "persistent_storage",
+    "allocated_compute_budget",
+    "registered_context_and_judging_protocol",
+    "validated_full_scope_curvature",
+    "pinned_model_and_data_revisions",
+    "near_duplicate_audit"
+  ]
+}

@@ -1,2 +1,3 @@
 # Preserve measured artifact bytes so SHA-256 verification survives Windows clones.
 /results/factorial_v2/runs/pilot/* -text
+/results/factorial_full_plan_20261001/preflight_*.json -text
