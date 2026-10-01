@@ -20,16 +20,48 @@ class FactorialPilotResultTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.all_results = [json.loads(path.read_text(encoding="utf-8")) for path in RESULTS]
-        cls.pairwise = [item for item in cls.all_results if item["config"]["loss"] == "pairwise"]
+        cls.ultrafeedback_3b = [
+            item
+            for item in cls.all_results
+            if item["config"]["dataset"] == "ultrafeedback"
+            and item["config"]["model_label"] == "3B"
+        ]
+        cls.pairwise = [
+            item for item in cls.ultrafeedback_3b if item["config"]["loss"] == "pairwise"
+        ]
         cls.results = [item for item in cls.pairwise if item["config"]["noise"] == 0.0]
         cls.summary = json.loads(SUMMARY.read_text(encoding="utf-8"))
-        cls.pointwise_all = [item for item in cls.all_results if item["config"]["loss"] == "pointwise"]
+        cls.pointwise_all = [
+            item for item in cls.ultrafeedback_3b if item["config"]["loss"] == "pointwise"
+        ]
         cls.pointwise = [item for item in cls.pointwise_all if item["config"]["noise"] == 0.0]
         cls.pointwise_summary = json.loads(POINTWISE_SUMMARY.read_text(encoding="utf-8"))
         cls.paired_summary = json.loads(PAIRED_SUMMARY.read_text(encoding="utf-8"))
         cls.noise_summary = json.loads(NOISE_SUMMARY.read_text(encoding="utf-8"))
         cls.pointwise_noise_summary = json.loads(POINTWISE_NOISE_SUMMARY.read_text(encoding="utf-8"))
         cls.paired_noise_summary = json.loads(PAIRED_NOISE_SUMMARY.read_text(encoding="utf-8"))
+
+    def test_reddit_tldr_series_starts_at_registered_index(self):
+        reddit = [
+            item
+            for item in self.all_results
+            if item["config"]["dataset"] == "reddit_tldr"
+            and item["config"]["model_label"] == "3B"
+            and item["config"]["loss"] == "pairwise"
+            and item["config"]["noise"] == 0.0
+        ]
+        self.assertEqual({item["run_index"] for item in reddit}, {12, 13})
+        self.assertEqual({item["config"]["seed"] for item in reddit}, {11, 29})
+        hashes_by_seed = {
+            item["config"]["seed"]: item["data_sha256"] for item in reddit
+        }
+        self.assertEqual(
+            hashes_by_seed,
+            {
+                11: "b69f2b179074b93c8b45de4975c828611843e2bb6026c729f59493c050da1b8c",
+                29: "e9968cac2d6439cb1d1c2594f95272e305380247bef21286f037d8ebc2bfdbee",
+            },
+        )
 
     def test_three_seed_series_identity(self):
         self.assertEqual(len(self.results), 3)

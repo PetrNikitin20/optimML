@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "execution_profile": "pilot",
+  "run_index": 12,
+  "run_key": "012_pairwise_3B_reddit_tldr_noise0.0_seed11",
+  "config": {
+    "loss": "pairwise",
+    "model_label": "3B",
+    "model_id": "Qwen/Qwen2.5-3B-Instruct",
+    "dataset": "reddit_tldr",
+    "noise": 0.0,
+    "seed": 11,
+    "train_pairs": 256,
+    "eval_pairs": 64,
+    "max_length": 192,
+    "max_steps": 10,
+    "batch_size": 1,
+    "grad_accum": 4,
+    "learning_rate": 0.0002,
+    "beta": 0.1,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "curvature_batches": 2,
+    "hessian_power_iterations": 2,
+    "generation_prompts": 8,
+    "checkpoint_every": 5,
+    "log_every": 1
+  },
+  "system": {
+    "gpu": "Tesla T4",
+    "gpu_memory_gb": 14.563,
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "python": "3.13.15"
+  },
+  "data_sha256": "b69f2b179074b93c8b45de4975c828611843e2bb6026c729f59493c050da1b8c",
+  "gradient_preflight": {
+    "loss": 0.6931471824645996,
+    "grad_norm": 0.4917064905166626
+  },
+  "train": {
+    "train_loss_last_25": 0.6860595583915711,
+    "train_seconds": 200.234828967,
+    "optimizer_steps": 10,
+    "examples_seen": 40,
+    "examples_per_second": 0.1997654464328594,
+    "peak_gpu_memory_gb": 3.9395437240600586,
+    "trainable_parameters": 29933568,
+    "total_parameters": 1728606208,
+    "adapter_path": "optimML_factorial/adapters/pilot/012_pairwise_3B_reddit_tldr_noise0.0_seed11",
+    "checkpoint_path": "optimML_factorial/checkpoints/pilot/012_pairwise_3B_reddit_tldr_noise0.0_seed11.pt",
+    "execution_profile": "pilot"
+  },
+  "evaluation": {
+    "likelihood_ranking_accuracy": 0.59375,
+    "brier": 0.2430303685430962,
+    "ece_15": 0.4920794313216149,
+    "c_mean": -1.7677353899925947,
+    "c_abs_mean": 1.7677353899925947,
+    "c_sd": 0.6561401682348738,
+    "d_mean": 0.3179376646876335,
+    "d_abs_mean": 0.9275958091020584,
+    "d_sd": 1.2071979429863222,
+    "n_eval_pairs": 64
+  },
+  "kl_to_sft": 1.4812186491904957,
+  "curvature": {
+    "empirical_fisher_top_eigenvalue": 0.2881205976009369,
+    "empirical_fisher_trace": 0.5049252510070801,
+    "hessian_top_eigenvalue_power": -2.770797073626909,
+    "hessian_hvp_method": "central_finite_difference",
+    "hessian_hvp_epsilon": 0.001,
+    "curvature_batches": 2
+  },
+  "generation": {
+    "judge_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+    "generation_win_rate_vs_sft": 0.5,
+    "generation_tie_rate": 0.0,
+    "mean_reward_delta": -0.4171811267733574,
+    "policy_response_length_tokens": 116.5,
+    "sft_response_length_tokens": 113.75,
+    "n_generation_prompts": 8
+  },
+  "row_metrics_path": "optimML_factorial/runs/pilot/012_pairwise_3B_reddit_tldr_noise0.0_seed11_rows.parquet",
+  "completed_utc": "2026-10-01T05:04:02.641817+00:00"
+}
